@@ -43,7 +43,7 @@ const visits = [
   { name: 'Beatriz Santos', date: '09/03 · 15:00', status: 'pending', avatar: 'BS', color: '#8b5cf6' },
 ]
 
-export default function ScreenPropertyDetail({ property, onBack }) {
+export default function ScreenPropertyDetail({ property, onBack, onOpenEdit, onOpenScheduleVisit }) {
   const imovel = property
     ? {
         ...detailFallback,
@@ -110,7 +110,7 @@ export default function ScreenPropertyDetail({ property, onBack }) {
               </option>
             ))}
           </select>
-          <button style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 700, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit' }}>
+          <button onClick={onOpenEdit} style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 700, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit' }}>
             <Icon d={icons.edit} size={13} /> Editar
           </button>
           <button onClick={() => setShareOpen(true)} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: '#1a56db', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit' }}>
@@ -257,12 +257,12 @@ export default function ScreenPropertyDetail({ property, onBack }) {
           <div>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Ações Rápidas</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                { icon: icons.whatsapp, label: 'Enviar a leads compatíveis', color: '#10b981', bg: '#f0fdf4' },
-                { icon: icons.calendar, label: 'Agendar visita', color: '#3b82f6', bg: '#eff6ff' },
-                { icon: icons.share, label: 'Gerar link de compartilhamento', color: '#8b5cf6', bg: '#f5f3ff' },
-              ].map(({ icon, label, color, bg }) => (
-                <button key={label} style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #f1f5f9', background: bg, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'inherit', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', textAlign: 'left' }}>
+                {[
+                  { icon: icons.whatsapp, label: 'Enviar a leads compatíveis', color: '#10b981', bg: '#f0fdf4' },
+                  { icon: icons.calendar, label: 'Agendar visita', color: '#3b82f6', bg: '#eff6ff' },
+                  { icon: icons.share, label: 'Gerar link de compartilhamento', color: '#8b5cf6', bg: '#f5f3ff' },
+                ].map(({ icon, label, color, bg }) => (
+                <button key={label} onClick={label === 'Agendar visita' ? onOpenScheduleVisit : undefined} style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #f1f5f9', background: bg, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'inherit', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', textAlign: 'left' }}>
                   <Icon d={icon} size={15} stroke={color} />
                   <span style={{ fontSize: 12, fontWeight: 700, color }}>{label}</span>
                 </button>

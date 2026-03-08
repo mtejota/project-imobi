@@ -4,7 +4,7 @@ import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 import { chatHistory, messages } from '../data'
 
-export default function ScreenWhatsApp() {
+export default function ScreenWhatsApp({ onOpenLeadProfile }) {
   const [active, setActive] = useState(0)
   const [msg, setMsg] = useState('')
   const endRef = useRef(null)
@@ -67,7 +67,7 @@ export default function ScreenWhatsApp() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button style={{ padding: '7px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 11, fontWeight: 700, color: '#64748b', cursor: 'pointer' }}>Ver perfil</button>
+            <button onClick={() => onOpenLeadProfile?.(messages[active])} style={{ padding: '7px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 11, fontWeight: 700, color: '#64748b', cursor: 'pointer' }}>Ver perfil</button>
             <button style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: '#fef2f2', fontSize: 11, fontWeight: 700, color: '#ef4444', cursor: 'pointer' }}>Assumir conversa</button>
           </div>
         </div>

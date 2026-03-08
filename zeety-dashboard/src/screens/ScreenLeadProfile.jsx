@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
-const lead = {
+const defaultLead = {
   id: 1,
   name: 'João Ferreira',
   phone: '(11) 98765-4321',
@@ -43,7 +43,8 @@ const matchedProperties = [
 const stageColors = { Prospecção: '#64748b', Visita: '#3b82f6', Proposta: '#f59e0b', Negociação: '#f97316', Fechamento: '#10b981' }
 const stages = ['Prospecção', 'Visita', 'Proposta', 'Negociação', 'Fechamento']
 
-export default function ScreenLeadProfile({ onBack }) {
+export default function ScreenLeadProfile({ onBack, leadData, onOpenEdit, onSendMessage }) {
+  const lead = leadData || defaultLead
   const [activeTab, setActiveTab] = useState('timeline')
   const [note, setNote] = useState('')
   const [currentStage, setCurrentStage] = useState(lead.stage)
@@ -64,10 +65,10 @@ export default function ScreenLeadProfile({ onBack }) {
         <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>{lead.name}</span>
 
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          <button style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 700, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={onOpenEdit} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 700, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon d={icons.edit} size={13} /> Editar
           </button>
-          <button style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#1a56db', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={onSendMessage} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#1a56db', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon d={icons.whatsapp} size={13} /> Mensagem
           </button>
         </div>

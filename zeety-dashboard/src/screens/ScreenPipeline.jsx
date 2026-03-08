@@ -1,7 +1,7 @@
 import Avatar from '../components/Avatar'
 import { pipeline } from '../data'
 
-export default function ScreenPipeline({ onOpenNegotiationDetail }) {
+export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegotiation }) {
   const stages = Object.keys(pipeline)
   const stageColors = { Prospecção: '#64748b', Visita: '#3b82f6', Proposta: '#f59e0b', Negociação: '#f97316', Fechamento: '#10b981' }
   const total = stages.reduce((sum, s) => sum + pipeline[s].length, 0)
@@ -15,7 +15,7 @@ export default function ScreenPipeline({ onOpenNegotiationDetail }) {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 600, color: '#64748b', cursor: 'pointer' }}>Ordenar por valor</button>
-          <button style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>+ Negociação</button>
+          <button onClick={onOpenNewNegotiation} style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>+ Negociação</button>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export default function ScreenPipeline({ onOpenNegotiationDetail }) {
                   </div>
                 </div>
               ))}
-              <button style={{ width: '100%', padding: '10px', borderRadius: 14, border: '2px dashed #e2e8f0', background: 'transparent', color: '#cbd5e1', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>+ Adicionar</button>
+              <button onClick={onOpenNewNegotiation} style={{ width: '100%', padding: '10px', borderRadius: 14, border: '2px dashed #e2e8f0', background: 'transparent', color: '#cbd5e1', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>+ Adicionar</button>
             </div>
           </div>
         ))}

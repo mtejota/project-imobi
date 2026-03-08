@@ -6,7 +6,7 @@ import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 import { appointments, leads, notifications } from '../data'
 
-export default function ScreenDashboard() {
+export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
   const [time, setTime] = useState(new Date())
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function ScreenDashboard() {
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
             <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Leads Recentes</span>
-              <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Ver todos →</span>
+              <span onClick={onOpenLeads} style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Ver todos →</span>
             </div>
             <div>
               {leads.slice(0, 4).map((l, i) => (
@@ -82,7 +82,7 @@ export default function ScreenDashboard() {
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
             <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Agenda de Hoje</span>
-              <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Abrir calendário →</span>
+              <span onClick={onOpenCalendar} style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Abrir calendário →</span>
             </div>
             <div style={{ padding: '8px 22px 18px' }}>
               {appointments.map((a, i) => (
