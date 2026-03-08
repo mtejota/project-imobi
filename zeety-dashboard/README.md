@@ -2,130 +2,128 @@
 
 Frontend do CRM imobiliario Zeety, construido com React + Vite.
 
-## Visao geral
+## Estado atual
 
-Este projeto e um dashboard single-page com navegacao interna por estado (sem roteador), com telas de:
+O front-end esta funcional para demo/comercial visual e homologacao de interface.
 
-- Dashboard
-- Leads
-- Pipeline
-- WhatsApp
-- Agenda
-- Imoveis
-- Metricas
-- Documentos
-
-Atualmente, os dados sao mockados em `src/data/index.js` e nao ha integracao ativa com backend.
+- Roteamento multi-tenant ativo com `react-router-dom`
+- Login/cadastro visual com sessao local
+- Dashboard com metricas animadas e alertas dinamicos (mock em tempo real)
+- Pipeline com drag-and-drop, confirmacao de mudanca, score de urgencia e exclusao de negociacao
+- Agenda com filtros por periodo, agenda inteligente e lembretes de deslocamento
+- Modulo de suporte com abertura de chamado e anexo de imagem
+- Tela de relatorios com selecao de periodo e fluxo de exportacao PDF (UI pronta)
 
 ## Stack tecnica
 
 - React 18
 - Vite 7
+- React Router DOM 6
 - JavaScript (ES Modules)
-- CSS (global + estilos inline nos componentes)
+- CSS global + estilos inline nos componentes
 
-## Pre-requisitos obrigatorios
+## Como rodar
 
-- Node.js `20+` (recomendado LTS atual)
+Pre-requisitos:
+
+- Node.js `20+`
 - npm `10+`
 
-Para conferir versoes:
-
-```bash
-node -v
-npm -v
-```
-
-## Instalacao
-
-No diretorio do projeto:
+Instalacao e execucao:
 
 ```bash
 npm install
-```
-
-## Configuracao de ambiente
-
-As variaveis ficam em `.env` (arquivo ignorado pelo Git).
-
-Exemplo:
-
-```env
-VITE_API_URL=http://localhost:3001
-VITE_WS_URL=ws://localhost:3001
-VITE_ENV=development
-```
-
-Variaveis definidas:
-
-- `VITE_API_URL`: URL base de API.
-- `VITE_WS_URL`: URL de WebSocket.
-- `VITE_ENV`: ambiente da aplicacao.
-
-Observacao: no estado atual do codigo, essas variaveis ainda nao sao consumidas em tempo de execucao.
-
-## Como rodar localmente
-
-1. Instale dependencias com `npm install`.
-2. Configure o `.env` (se necessario).
-3. Inicie o servidor de desenvolvimento:
-
-```bash
 npm run dev
 ```
 
-Por padrao, o Vite sobe em `http://localhost:5173`.
-
-## Scripts disponiveis
-
-- `npm run dev`: sobe ambiente de desenvolvimento com hot reload.
-- `npm run build`: gera build de producao em `dist/`.
-- `npm run preview`: serve localmente o build de producao.
-
-## Build de producao
+Build de producao:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Estrutura de pastas
+## Rotas principais
+
+- `/login`
+- `/:tenant/dashboard`
+- `/:tenant/leads`
+- `/:tenant/pipeline`
+- `/:tenant/whatsapp`
+- `/:tenant/calendar`
+- `/:tenant/properties`
+- `/:tenant/metrics`
+- `/:tenant/metrics/report`
+- `/:tenant/documents`
+- `/:tenant/support`
+- `/:tenant/settings`
+
+## Funcionalidades implementadas (front)
+
+### Dashboard
+
+- Cards de metricas com animacao numerica
+- Feed de prioridades do dia (Top 5 acoes automaticas)
+- Alertas da IA com atualizacao periodica (mock) e rolagem interna
+- Notificacoes no topo com remover individual e limpar tudo
+
+### Pipeline
+
+- Colunas por etapa com drag-and-drop
+- Confirmacao antes de mover card
+- Score de urgencia por card (risco, chance de fechamento, tempo parado)
+- Acao para apagar negociacao
+- Contador e valor em carteira dinamicos
+
+### Agenda
+
+- Visoes Dia/Semana/Mes
+- Dados e graficos variam por periodo
+- Filtro por dia selecionado
+- Agenda inteligente (prioriza por probabilidade de fechamento)
+- Lembretes de deslocamento com toggle ON/OFF
+
+### Relatorios
+
+- KPIs e graficos variam por periodo
+- Formato fixo em PDF
+- Estados de geracao/exportacao e estado visual de erro
+
+### Configuracoes
+
+- Edicao de nome de usuario
+- Upload de foto de perfil
+- Campo CRECI exibido e bloqueado para edicao
+- Integracoes de WhatsApp (mock visual)
+
+## Estrutura do projeto
 
 ```text
 .
 ├── src/
-│   ├── components/    # Componentes reutilizaveis
-│   ├── constants/     # Constantes de navegacao e icones
-│   ├── data/          # Dados mockados
-│   ├── screens/       # Telas do dashboard
-│   ├── App.jsx        # Shell da aplicacao e controle de telas
-│   ├── main.jsx       # Entry point React
-│   └── index.css      # Estilos globais
+│   ├── components/
+│   ├── constants/
+│   ├── data/
+│   ├── screens/
+│   ├── services/
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
 ├── index.html
 ├── vite.config.js
-└── package.json
+├── package.json
+└── package-lock.json
 ```
 
-## Qualidade e validacao recomendada
+## Pendencias para producao real
 
-Antes de abrir PR ou publicar:
+- Integrar autenticacao com backend real (JWT/refresh/tenant isolation no servidor)
+- Implementar exportacao PDF real no `pdfExportService`
+- Trocar fluxos mockados por API real (pipeline, agenda, suporte, integracoes)
+- Adicionar lint/testes automatizados (unit + smoke/e2e)
 
-1. Rodar `npm run build` para validar compilacao.
-2. Testar navegacao principal no `npm run dev`.
-3. Confirmar que nao ha segredos em arquivos versionados.
+## Scripts
 
-## Troubleshooting
-
-- Porta `5173` ocupada:
-  - Rode com outra porta: `npm run dev -- --port 4173`.
-- Dependencias quebradas ou lock inconsistente:
-  - Remova `node_modules` e rode `npm install` novamente.
-- Build falha por versao de Node:
-  - Atualize para Node `20+`.
-
-## Roadmap tecnico sugerido
-
-- Adicionar ESLint + Prettier.
-- Criar `.env.example` para onboarding.
-- Substituir dados mock por integracao real com API.
-- Adicionar testes (unitarios e/ou de interface).
+- `npm run dev`
+- `npm run build`
+- `npm run preview`

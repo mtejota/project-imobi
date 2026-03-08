@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Avatar from '../components/Avatar'
 import ScoreBadge from '../components/ScoreBadge'
 import StatCard from '../components/StatCard'
@@ -54,6 +54,57 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
   const displayName = String(userName || 'Usuário').split(' ')[0]
   const dateLabel = time.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
   const prettyDateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)
+  const priorityFeed = useMemo(() => {
+    const hotLeadActions = leads
+      .filter((lead) => lead.score >= 80)
+      .map((lead) => ({
+        id: `lead-${lead.id}`,
+        title: `Contato imediato: ${lead.name}`,
+        desc: `Lead quente (${lead.score}) · ${lead.budget} · ${lead.region}`,
+        score: Math.min(100, lead.score + 8),
+        color: '#ef4444',
+        tag: 'Lead quente',
+      }))
+
+    const delayedVisits = appointments
+      .filter((visit) => visit.status !== 'confirmed')
+      .map((visit, index) => ({
+        id: `visit-${visit.id}`,
+        title: `Visita pendente: ${visit.name}`,
+        desc: `${visit.time} · ${visit.property}`,
+        score: 72 - index * 4,
+        color: '#f59e0b',
+        tag: 'Visita atrasada',
+      }))
+
+    const proposalFollowUps = leads
+      .filter((lead) => lead.tag !== 'Quente')
+      .slice(0, 3)
+      .map((lead, index) => ({
+        id: `proposal-${lead.id}`,
+        title: `Follow-up de proposta: ${lead.name}`,
+        desc: `Sem retorno recente · ${lead.type}`,
+        score: 68 - index * 3,
+        color: '#8b5cf6',
+        tag: 'Proposta sem retorno',
+      }))
+
+    const fromAlerts = alerts
+      .filter((item) => item.title?.toLowerCase().includes('follow-up'))
+      .slice(0, 2)
+      .map((item, index) => ({
+        id: `alert-${item.id || index}`,
+        title: item.title,
+        desc: item.desc,
+        score: 64 - index * 2,
+        color: '#3b82f6',
+        tag: 'Alerta IA',
+      }))
+
+    return [...hotLeadActions, ...delayedVisits, ...proposalFollowUps, ...fromAlerts]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+  }, [alerts])
 
   return (
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%' }}>
@@ -91,6 +142,26 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 210) }}>
+            <div style={{ padding: '16px 22px 12px', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Feed de prioridades do dia</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Top 5 ações</span>
+            </div>
+            <div style={{ padding: '6px 22px 12px' }}>
+              {priorityFeed.map((item, index) => (
+                <div key={item.id} style={{ borderBottom: index < priorityFeed.length - 1 ? '1px solid #f8fafc' : 'none', padding: '10px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.color }} />
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{item.title}</div>
+                    <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: item.color }}>{item.score}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>{item.desc}</div>
+                  <div style={{ marginTop: 4, display: 'inline-block', borderRadius: 999, background: `${item.color}14`, color: item.color, fontSize: 9, fontWeight: 700, padding: '3px 7px' }}>{item.tag}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 230) }}>
             <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Leads Recentes</span>

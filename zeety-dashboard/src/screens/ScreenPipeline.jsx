@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import Avatar from '../components/Avatar'
+import Icon from '../components/Icon'
+import { icons } from '../constants/icons'
 import { pipeline as initialPipeline } from '../data'
 
 export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegotiation }) {
@@ -15,6 +17,18 @@ export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegot
 
   const total = useMemo(
     () => stages.reduce((sum, stage) => sum + pipelineState[stage].length, 0),
+    [pipelineState, stages]
+  )
+  const totalPortfolioValue = useMemo(
+    () =>
+      stages.reduce(
+        (sum, stage) =>
+          sum +
+          pipelineState[stage].reduce((stageSum, card) => {
+            return stageSum + parseCurrency(card.value)
+          }, 0),
+        0
+      ),
     [pipelineState, stages]
   )
 
@@ -58,6 +72,22 @@ export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegot
     setDragOverStage('')
   }
 
+  const handleDeleteNegotiation = (stage, cardId) => {
+    const shouldDelete = window.confirm('Deseja realmente apagar esta negociação?')
+    if (!shouldDelete) return
+
+    setPipelineState((current) => ({
+      ...current,
+      [stage]: current[stage].filter((item) => item.id !== cardId),
+    }))
+
+    if (draggingCardId === cardId) {
+      setDraggingCardId(null)
+      setDraggingFromStage('')
+      setDragOverStage('')
+    }
+  }
+
   return (
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%', position: 'relative' }}>
       {pendingMove && (
@@ -88,7 +118,7 @@ export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegot
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Pipeline de Negociações</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>{total} negociações ativas · R$ 5.03M em carteira</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>{total} negociações ativas · {formatPortfolioValue(totalPortfolioValue)} em carteira</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 600, color: '#64748b', cursor: 'pointer' }}>Ordenar por valor</button>
@@ -130,6 +160,7 @@ export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegot
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {pipelineState[stage].map((card) => {
                 const isDragging = draggingCardId === card.id
+                const urgency = getUrgency(card)
 
                 return (
                   <div
@@ -166,18 +197,37 @@ export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegot
                       }
                     }}
                     onClick={() => onOpenNegotiationDetail?.({ ...card, stage })}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <Avatar initials={card.avatar} color={card.color} size={30} />
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{card.name}</div>
-                        <div style={{ fontSize: 10, color: '#94a3b8' }}>{card.property}</div>
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                        <Avatar initials={card.avatar} color={card.color} size={30} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{card.name}</div>
+                          <div style={{ fontSize: 10, color: '#94a3b8' }}>{card.property}</div>
+                        </div>
+                        <button
+                          title="Apagar negociação"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteNegotiation(stage, card.id)
+                          }}
+                          style={{ width: 24, height: 24, borderRadius: 8, border: 'none', background: '#fef2f2', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                        >
+                          <Icon d={icons.trash} size={12} stroke="currentColor" />
+                        </button>
+                        <div style={{ fontSize: 9, fontWeight: 800, color: urgency.color, background: `${urgency.color}14`, border: `1px solid ${urgency.color}35`, borderRadius: 999, padding: '3px 7px' }}>
+                          Urgência {urgency.score}
+                        </div>
                       </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', fontFamily: "'DM Mono', monospace" }}>{card.value}</span>
-                      <span style={{ fontSize: 10, color: '#94a3b8' }}>{card.days}d</span>
-                    </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', fontFamily: "'DM Mono', monospace" }}>{card.value}</span>
+                        <span style={{ fontSize: 10, color: '#94a3b8' }}>{card.days}d</span>
+                      </div>
+                      <div style={{ fontSize: 10, color: '#64748b', lineHeight: 1.45 }}>
+                        Risco: <strong style={{ color: urgency.color }}>{urgency.riskLabel}</strong> · Chance: <strong style={{ color: '#0f172a' }}>{urgency.closingChance}%</strong>
+                      </div>
+                      <div style={{ marginTop: 6, height: 5, borderRadius: 6, background: '#f1f5f9', overflow: 'hidden' }}>
+                        <div style={{ width: `${urgency.score}%`, height: '100%', borderRadius: 6, background: urgency.color, transition: 'width 0.35s ease' }} />
+                      </div>
                   </div>
                 )
               })}
@@ -188,4 +238,33 @@ export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegot
       </div>
     </div>
   )
+}
+
+function getUrgency(card) {
+  const days = Number(card.days || 0)
+  const value = parseCurrency(card.value)
+  const valueScore = Math.min(30, Math.round(value / 50000))
+  const ageScore = Math.min(50, days * 4)
+  const stageScore = card.id % 2 === 0 ? 12 : 18
+  const score = Math.max(15, Math.min(100, ageScore + valueScore + stageScore))
+  const closingChance = Math.max(18, Math.min(92, 100 - Math.round(days * 2.7) + Math.round(value / 120000)))
+  const riskLabel = score >= 75 ? 'Alto' : score >= 50 ? 'Médio' : 'Baixo'
+  const color = score >= 75 ? '#ef4444' : score >= 50 ? '#f59e0b' : '#10b981'
+
+  return { score, closingChance, riskLabel, color }
+}
+
+function parseCurrency(value) {
+  const normalized = String(value || '')
+    .replace(/[^\d,.-]/g, '')
+    .replace(/\./g, '')
+    .replace(',', '.')
+  return Number(normalized || 0)
+}
+
+function formatPortfolioValue(value) {
+  const amount = Number(value || 0)
+  if (amount >= 1000000) return `R$ ${(amount / 1000000).toFixed(2)}M`
+  if (amount >= 1000) return `R$ ${(amount / 1000).toFixed(0)}k`
+  return `R$ ${amount.toLocaleString('pt-BR')}`
 }

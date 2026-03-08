@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
@@ -39,9 +39,17 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
   const [novaValor, setNovaValor] = useState('750000')
   const [novaObs, setNovaObs] = useState('')
   const stageIdx = STAGES.indexOf(currentStage)
+  const [pipelineProgress, setPipelineProgress] = useState(0)
+  const targetProgress = Math.max(0, ((stageIdx + 1) / STAGES.length) * 100)
+
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setPipelineProgress(targetProgress))
+    return () => cancelAnimationFrame(t)
+  }, [targetProgress])
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#f8fafc' }}>
+      <style>{`@keyframes pipelineFlow{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}`}</style>
       {showNovaProposta && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: 32, width: 460, boxShadow: '0 24px 60px rgba(0,0,0,0.2)' }}>
@@ -138,6 +146,17 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
                   {i < STAGES.length - 1 && <div style={{ flex: 1, height: 3, background: i < stageIdx ? stageColor[STAGES[i + 1]] : '#f1f5f9', margin: '0 4px', marginBottom: 22, borderRadius: 2 }} />}
                 </div>
               ))}
+            </div>
+            <div style={{ marginTop: 14 }}>
+              <div style={{ height: 8, borderRadius: 8, background: '#f1f5f9', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${pipelineProgress}%`, borderRadius: 8, background: `linear-gradient(90deg, ${stageColor[currentStage]}cc, ${stageColor[currentStage]})`, position: 'relative', overflow: 'hidden', transition: 'width 0.65s ease' }}>
+                  <div style={{ position: 'absolute', inset: 0, width: '35%', background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.55), rgba(255,255,255,0))', animation: 'pipelineFlow 1.2s linear infinite' }} />
+                </div>
+              </div>
+              <div style={{ marginTop: 6, display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#94a3b8' }}>
+                <span>Etapa atual: {currentStage}</span>
+                <span style={{ fontWeight: 700, color: stageColor[currentStage] }}>{Math.round(targetProgress)}%</span>
+              </div>
             </div>
           </div>
 
