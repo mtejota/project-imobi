@@ -4,6 +4,11 @@ import { icons } from '../constants/icons'
 import { buildReportPayload, exportReportPdf } from '../services/pdfExportService'
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const normalizeFileName = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_')
 const barData = [42, 58, 65, 71, 54, 80, 73, 88, 62, 79, 85, 91]
 const funnelData = [
   { label: 'Leads', val: 187, pct: 100, color: '#3b82f6' },
@@ -348,8 +353,8 @@ export default function ScreenGenerateReport({ onBack }) {
           {generated ? (
             <div style={{ background: '#f0fdf4', borderRadius: 16, padding: 20, border: '1px solid #bbf7d0', textAlign: 'center', ...enter(animate, 230) }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#16a34a', marginBottom: 4 }}>Relatório gerado!</div>
-              <div style={{ fontSize: 11, color: '#16a34a', marginBottom: 16 }}>Relatorio_Zeety_{period.replaceAll(' ', '_')}.pdf</div>
-              <button onClick={handleExportPdf} disabled={exportingPdf} style={{ width: '100%', padding: 11, borderRadius: 12, border: 'none', background: exportingPdf ? '#6ee7b7' : '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: exportingPdf ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+              <div style={{ fontSize: 11, color: '#16a34a', marginBottom: 16 }}>Relatorio_Zeety_{normalizeFileName(period)}.pdf</div>
+              <button onClick={handleExportPdf} disabled={exportingPdf} style={{ width: '100%', padding: 11, borderRadius: 12, border: exportError ? '1px solid #ef4444' : 'none', background: exportError ? '#ef4444' : exportingPdf ? '#6ee7b7' : '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: exportingPdf ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
                 {exportingPdf ? (
                   <>
                     <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.35)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -357,11 +362,11 @@ export default function ScreenGenerateReport({ onBack }) {
                   </>
                 ) : (
                   <>
-                    <Icon d={icons.download} size={15} stroke="#fff" /> Baixar agora
+                    <Icon d={exportError ? icons.alert : icons.download} size={15} stroke="#fff" /> {exportError ? 'ERRO AO GERAR RELATÓRIO' : 'Baixar agora'}
                   </>
                 )}
               </button>
-              {exportError && <div style={{ marginTop: 10, fontSize: 11, color: '#b91c1c' }}>{exportError}</div>}
+              {exportError && <div style={{ marginTop: 10, fontSize: 11, color: '#b91c1c' }}>Falha ao gerar o PDF. Entre em contato com o suporte.</div>}
             </div>
           ) : (
             <button

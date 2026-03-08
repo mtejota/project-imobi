@@ -4,15 +4,15 @@ import ScoreBadge from '../components/ScoreBadge'
 import StatCard from '../components/StatCard'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
-import { appointments, leads, notifications } from '../data'
+import { appointments, leads } from '../data'
 
-export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
+export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName = 'Usuário', alerts = [], onDismissAlert, onClearAlerts }) {
   const [time, setTime] = useState(new Date())
   const [showCharts, setShowCharts] = useState(false)
   const [ready, setReady] = useState(false)
 
   const hotLeads = useAnimatedNumber(3, 900)
-  const alertsCount = useAnimatedNumber(4, 900)
+  const alertsCount = alerts.length
   const leadsToday = useAnimatedNumber(14, 1000)
   const visitsToday = useAnimatedNumber(4, 1000)
   const activeNegotiations = useAnimatedNumber(9, 1000)
@@ -45,13 +45,17 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
     { label: 'Propostas', val: proposals, pct: 17, color: '#f97316' },
     { label: 'Fechamentos', val: closings, pct: 6, color: '#10b981' },
   ]
+  const greetingByHour = getGreetingByHour(time.getHours())
+  const displayName = String(userName || 'Usuário').split(' ')[0]
+  const dateLabel = time.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
+  const prettyDateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)
 
   return (
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, ...inViewStyle(ready, 0) }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Bom dia, Lucas 👋</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Sábado, 7 de março de 2026 · {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>{greetingByHour}, {displayName} 👋</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>{prettyDateLabel} · {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -151,24 +155,35 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
               <span style={{ fontSize: 13, fontWeight: 800, color: '#f8fafc' }}>Alertas da IA</span>
               <div style={{ marginLeft: 'auto', width: 18, height: 18, borderRadius: '50%', background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#fff' }}>{alertsCount}</div>
             </div>
-            {notifications.map((n, i) => (
-              <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < notifications.length - 1 ? '1px solid #1e293b' : 'none', ...inViewStyle(ready, 290 + i * 50) }}>
-                <div style={{ width: 32, height: 32, borderRadius: 10, background: `${n.bg}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon d={icons[n.icon]} size={14} stroke={n.color} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -4, marginBottom: 8 }}>
+              <button onClick={onClearAlerts} style={{ border: 'none', background: '#1e293b', color: '#94a3b8', borderRadius: 8, padding: '5px 8px', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Limpar alertas
+              </button>
+            </div>
+            <div style={{ maxHeight: 240, overflowY: 'auto', paddingRight: 2 }}>
+              {alerts.length === 0 && <div style={{ fontSize: 11, color: '#64748b', paddingBottom: 8 }}>Sem alertas da IA no momento.</div>}
+              {alerts.map((n, i) => (
+                <div key={n.id || i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < alerts.length - 1 ? '1px solid #1e293b' : 'none', ...inViewStyle(ready, 290 + i * 50) }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 10, background: `${n.bg}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon d={icons[n.icon]} size={14} stroke={n.color} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9' }}>{n.title}</div>
+                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>{n.desc}</div>
+                    <div style={{ fontSize: 10, color: '#475569', marginTop: 4 }}>{n.timeLabel || n.time}</div>
+                  </div>
+                  <button onClick={() => onDismissAlert?.(n.id)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', background: '#1e293b', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon d={icons.x} size={11} />
+                  </button>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9' }}>{n.title}</div>
-                  <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>{n.desc}</div>
-                  <div style={{ fontSize: 10, color: '#475569', marginTop: 4 }}>{n.time}</div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '18px 20px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 340) }}>
             <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', marginBottom: 16 }}>Funil do Mês</div>
-            {funnelRows.map((row) => (
-              <div key={row.label} style={{ marginBottom: 10, ...inViewStyle(ready, 380 + Number(row.val) * 10) }}>
+            {funnelRows.map((row, idx) => (
+              <div key={row.label} style={{ marginBottom: 10, ...inViewStyle(ready, 380 + idx * 55) }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontSize: 11, color: '#64748b' }}>{row.label}</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', fontFamily: "'DM Mono', monospace" }}>{row.val}</span>
@@ -183,6 +198,12 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
       </div>
     </div>
   )
+}
+
+function getGreetingByHour(hour) {
+  if (hour < 12) return 'Bom dia'
+  if (hour < 18) return 'Boa tarde'
+  return 'Boa noite'
 }
 
 function inViewStyle(ready, delay = 0) {
