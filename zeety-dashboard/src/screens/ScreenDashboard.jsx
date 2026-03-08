@@ -8,15 +8,47 @@ import { appointments, leads, notifications } from '../data'
 
 export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
   const [time, setTime] = useState(new Date())
+  const [showCharts, setShowCharts] = useState(false)
+  const [ready, setReady] = useState(false)
+
+  const hotLeads = useAnimatedNumber(3, 900)
+  const alertsCount = useAnimatedNumber(4, 900)
+  const leadsToday = useAnimatedNumber(14, 1000)
+  const visitsToday = useAnimatedNumber(4, 1000)
+  const activeNegotiations = useAnimatedNumber(9, 1000)
+  const monthlyClosedMillions = useAnimatedNumber(3.2, 1100)
+  const leadsCaptured = useAnimatedNumber(47, 1100)
+  const qualified = useAnimatedNumber(29, 1100)
+  const visitsMade = useAnimatedNumber(18, 1100)
+  const proposals = useAnimatedNumber(8, 1100)
+  const closings = useAnimatedNumber(3, 1100)
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
 
+  useEffect(() => {
+    const t = setTimeout(() => setShowCharts(true), 80)
+    return () => clearTimeout(t)
+  }, [])
+
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setReady(true))
+    return () => cancelAnimationFrame(t)
+  }, [])
+
+  const funnelRows = [
+    { label: 'Leads captados', val: leadsCaptured, pct: 100, color: '#3b82f6' },
+    { label: 'Qualificados', val: qualified, pct: 62, color: '#8b5cf6' },
+    { label: 'Visitas realizadas', val: visitsMade, pct: 38, color: '#f59e0b' },
+    { label: 'Propostas', val: proposals, pct: 17, color: '#f97316' },
+    { label: 'Fechamentos', val: closings, pct: 6, color: '#10b981' },
+  ]
+
   return (
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, ...inViewStyle(ready, 0) }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Bom dia, Lucas 👋</div>
           <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Sábado, 7 de março de 2026 · {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -24,7 +56,7 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
         <div style={{ display: 'flex', gap: 10 }}>
           <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444' }}>3 leads quentes</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444' }}>{hotLeads} leads quentes</span>
           </div>
           <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon d={icons.whatsapp} size={14} stroke="#10b981" />
@@ -34,15 +66,23 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
       </div>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-        <StatCard icon="chat" label="Leads Hoje" value="14" delta={23} color="#3b82f6" bg="#eff6ff" />
-        <StatCard icon="calendar" label="Visitas Hoje" value="4" delta={0} color="#8b5cf6" bg="#f5f3ff" />
-        <StatCard icon="funnel" label="Negociações Ativas" value="9" delta={12} color="#f59e0b" bg="#fffbeb" />
-        <StatCard icon="chart" label="Fechados este mês" value="R$ 3.2M" delta={8} color="#10b981" bg="#f0fdf4" />
+        <div style={{ flex: 1, ...inViewStyle(ready, 70) }}>
+          <StatCard icon="chat" label="Leads Hoje" value={String(leadsToday)} delta={23} color="#3b82f6" bg="#eff6ff" />
+        </div>
+        <div style={{ flex: 1, ...inViewStyle(ready, 110) }}>
+          <StatCard icon="calendar" label="Visitas Hoje" value={String(visitsToday)} delta={0} color="#8b5cf6" bg="#f5f3ff" />
+        </div>
+        <div style={{ flex: 1, ...inViewStyle(ready, 150) }}>
+          <StatCard icon="funnel" label="Negociações Ativas" value={String(activeNegotiations)} delta={12} color="#f59e0b" bg="#fffbeb" />
+        </div>
+        <div style={{ flex: 1, ...inViewStyle(ready, 190) }}>
+          <StatCard icon="chart" label="Fechados este mês" value={`R$ ${monthlyClosedMillions.toFixed(1)}M`} delta={8} color="#10b981" bg="#f0fdf4" />
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 230) }}>
             <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Leads Recentes</span>
               <span onClick={onOpenLeads} style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Ver todos →</span>
@@ -59,6 +99,7 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
                     borderBottom: i < 3 ? '1px solid #f8fafc' : 'none',
                     transition: 'background 0.15s',
                     cursor: 'pointer',
+                    ...inViewStyle(ready, 260 + i * 45),
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = '#fafafa'
@@ -79,14 +120,14 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
             </div>
           </div>
 
-          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 320) }}>
             <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Agenda de Hoje</span>
               <span onClick={onOpenCalendar} style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Abrir calendário →</span>
             </div>
             <div style={{ padding: '8px 22px 18px' }}>
               {appointments.map((a, i) => (
-                <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 0', borderBottom: i < appointments.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+                <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 0', borderBottom: i < appointments.length - 1 ? '1px solid #f8fafc' : 'none', ...inViewStyle(ready, 360 + i * 45) }}>
                   <div style={{ width: 48, textAlign: 'center', fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: '#64748b' }}>{a.time}</div>
                   <div style={{ width: 3, height: 36, borderRadius: 4, background: a.status === 'confirmed' ? '#10b981' : '#f59e0b', flexShrink: 0 }} />
                   <Avatar initials={a.avatar} color={a.color} size={32} />
@@ -102,16 +143,16 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ background: '#0f172a', borderRadius: 16, padding: '18px 20px', border: '1px solid #1e293b' }}>
+          <div style={{ background: '#0f172a', borderRadius: 16, padding: '18px 20px', border: '1px solid #1e293b', ...inViewStyle(ready, 250) }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <div style={{ width: 28, height: 28, borderRadius: 8, background: '#22c55e20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon d={icons.zap} size={14} stroke="#22c55e" />
               </div>
               <span style={{ fontSize: 13, fontWeight: 800, color: '#f8fafc' }}>Alertas da IA</span>
-              <div style={{ marginLeft: 'auto', width: 18, height: 18, borderRadius: '50%', background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#fff' }}>4</div>
+              <div style={{ marginLeft: 'auto', width: 18, height: 18, borderRadius: '50%', background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#fff' }}>{alertsCount}</div>
             </div>
             {notifications.map((n, i) => (
-              <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < notifications.length - 1 ? '1px solid #1e293b' : 'none' }}>
+              <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < notifications.length - 1 ? '1px solid #1e293b' : 'none', ...inViewStyle(ready, 290 + i * 50) }}>
                 <div style={{ width: 32, height: 32, borderRadius: 10, background: `${n.bg}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icon d={icons[n.icon]} size={14} stroke={n.color} />
                 </div>
@@ -124,22 +165,16 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
             ))}
           </div>
 
-          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '18px 20px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '18px 20px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 340) }}>
             <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', marginBottom: 16 }}>Funil do Mês</div>
-            {[
-              { label: 'Leads captados', val: 47, pct: 100, color: '#3b82f6' },
-              { label: 'Qualificados', val: 29, pct: 62, color: '#8b5cf6' },
-              { label: 'Visitas realizadas', val: 18, pct: 38, color: '#f59e0b' },
-              { label: 'Propostas', val: 8, pct: 17, color: '#f97316' },
-              { label: 'Fechamentos', val: 3, pct: 6, color: '#10b981' },
-            ].map((row) => (
-              <div key={row.label} style={{ marginBottom: 10 }}>
+            {funnelRows.map((row) => (
+              <div key={row.label} style={{ marginBottom: 10, ...inViewStyle(ready, 380 + Number(row.val) * 10) }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontSize: 11, color: '#64748b' }}>{row.label}</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', fontFamily: "'DM Mono', monospace" }}>{row.val}</span>
                 </div>
                 <div style={{ height: 6, background: '#f1f5f9', borderRadius: 4 }}>
-                  <div style={{ height: '100%', width: `${row.pct}%`, background: row.color, borderRadius: 4, transition: 'width 1s' }} />
+                  <div style={{ height: '100%', width: showCharts ? `${row.pct}%` : '0%', background: row.color, borderRadius: 4, transition: 'width 1s, filter 0.4s', filter: showCharts ? 'saturate(1)' : 'saturate(0.7)' }} />
                 </div>
               </div>
             ))}
@@ -148,4 +183,37 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar }) {
       </div>
     </div>
   )
+}
+
+function inViewStyle(ready, delay = 0) {
+  return {
+    opacity: ready ? 1 : 0,
+    transform: ready ? 'translateY(0)' : 'translateY(8px)',
+    transition: `opacity 0.45s ease ${delay}ms, transform 0.45s ease ${delay}ms`,
+  }
+}
+
+function useAnimatedNumber(target, duration = 1000) {
+  const [value, setValue] = useState(0)
+
+  useEffect(() => {
+    let frame = 0
+    const start = performance.now()
+    const from = 0
+    const to = Number(target) || 0
+
+    const tick = (now) => {
+      const elapsed = now - start
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - (1 - progress) * (1 - progress)
+      const next = from + (to - from) * eased
+      setValue(next)
+      if (progress < 1) frame = requestAnimationFrame(tick)
+    }
+
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [target, duration])
+
+  return target % 1 === 0 ? Math.round(value) : Number(value.toFixed(1))
 }

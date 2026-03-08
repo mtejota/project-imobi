@@ -7,75 +7,75 @@ import { leads, notifications, pipeline, properties } from './data'
 import {
   ScreenCalendar,
   ScreenDashboard,
+  ScreenDocumentUpload,
   ScreenDocuments,
   ScreenGenerateReport,
+  ScreenLeadEdit,
   ScreenLeads,
   ScreenLeadProfile,
+  ScreenLogin,
   ScreenMetrics,
+  ScreenNewNegotiation,
   ScreenNewProperty,
   ScreenNegotiationDetail,
   ScreenNewLead,
   ScreenPipeline,
   ScreenPropertyDetail,
+  ScreenPropertyEdit,
   ScreenProperties,
   ScreenRequestDocuments,
   ScreenScheduleVisit,
+  ScreenSettings,
   ScreenWhatsApp,
 } from './screens'
 
 const NAV_ROUTES = {
-  dashboard: '/dashboard',
-  leads: '/leads',
-  pipeline: '/pipeline',
-  whatsapp: '/whatsapp',
-  calendar: '/calendar',
-  properties: '/properties',
-  metrics: '/metrics',
-  documents: '/documents',
+  dashboard: 'dashboard',
+  leads: 'leads',
+  pipeline: 'pipeline',
+  whatsapp: 'whatsapp',
+  calendar: 'calendar',
+  properties: 'properties',
+  metrics: 'metrics',
+  documents: 'documents',
 }
 
-function getCurrentLabel(pathname) {
-  if (pathname === '/dashboard') return 'Dashboard'
-  if (pathname === '/leads') return 'Leads'
-  if (pathname === '/leads/new') return 'Novo Lead'
-  if (/^\/leads\/[^/]+\/edit$/.test(pathname)) return 'Editar Lead'
-  if (/^\/leads\/[^/]+$/.test(pathname)) return 'Perfil Lead'
-  if (pathname === '/pipeline') return 'Pipeline'
-  if (pathname === '/pipeline/new') return 'Nova Negociação'
-  if (/^\/pipeline\/[^/]+$/.test(pathname)) return 'Detalhe da Negociação'
-  if (pathname === '/whatsapp') return 'WhatsApp IA'
-  if (pathname === '/calendar') return 'Agenda'
-  if (pathname === '/calendar/schedule') return 'Agendar Visita'
-  if (pathname === '/properties') return 'Imóveis'
-  if (pathname === '/properties/new') return 'Cadastrar Imóvel'
-  if (/^\/properties\/[^/]+\/edit$/.test(pathname)) return 'Editar Imóvel'
-  if (/^\/properties\/[^/]+$/.test(pathname)) return 'Detalhe do Imóvel'
-  if (pathname === '/metrics') return 'Métricas'
-  if (pathname === '/metrics/report') return 'Gerar Relatório'
-  if (pathname === '/documents') return 'Documentos'
-  if (pathname === '/documents/request') return 'Solicitar Documentos'
-  if (pathname === '/documents/upload') return 'Upload de Documentos'
-  if (pathname === '/settings') return 'Configurações'
+function getStoredSession() {
+  try {
+    const raw = localStorage.getItem('zeety_session')
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+function getCurrentLabel(pathname, tenant) {
+  const prefix = `/${tenant}`
+  const subPath = pathname.startsWith(prefix) ? pathname.slice(prefix.length) || '/dashboard' : pathname
+
+  if (subPath === '/dashboard') return 'Dashboard'
+  if (subPath === '/leads') return 'Leads'
+  if (subPath === '/leads/new') return 'Novo Lead'
+  if (/^\/leads\/[^/]+\/edit$/.test(subPath)) return 'Editar Lead'
+  if (/^\/leads\/[^/]+$/.test(subPath)) return 'Perfil Lead'
+  if (subPath === '/pipeline') return 'Pipeline'
+  if (subPath === '/pipeline/new') return 'Nova Negociação'
+  if (/^\/pipeline\/[^/]+$/.test(subPath)) return 'Detalhe da Negociação'
+  if (subPath === '/whatsapp') return 'WhatsApp IA'
+  if (subPath === '/calendar') return 'Agenda'
+  if (subPath === '/calendar/schedule') return 'Agendar Visita'
+  if (subPath === '/properties') return 'Imóveis'
+  if (subPath === '/properties/new') return 'Cadastrar Imóvel'
+  if (/^\/properties\/[^/]+\/edit$/.test(subPath)) return 'Editar Imóvel'
+  if (/^\/properties\/[^/]+$/.test(subPath)) return 'Detalhe do Imóvel'
+  if (subPath === '/metrics') return 'Métricas'
+  if (subPath === '/metrics/report') return 'Gerar Relatório'
+  if (subPath === '/documents') return 'Documentos'
+  if (subPath === '/documents/request') return 'Solicitar Documentos'
+  if (subPath === '/documents/upload') return 'Upload de Documentos'
+  if (subPath === '/settings') return 'Configurações'
   return 'Zeety CRM'
-}
-
-function PlaceholderScreen({ title, description, onBack, backLabel = 'Voltar' }) {
-  return (
-    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ maxWidth: 520, width: '100%', background: '#fff', border: '1px solid #f1f5f9', borderRadius: 16, padding: 24, boxShadow: '0 8px 28px rgba(0,0,0,0.08)' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>{title}</div>
-        <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6, marginBottom: 16 }}>{description}</div>
-        {onBack && (
-          <button
-            onClick={onBack}
-            style={{ border: 'none', borderRadius: 10, background: '#1a56db', color: '#fff', padding: '10px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-          >
-            {backLabel}
-          </button>
-        )}
-      </div>
-    </div>
-  )
 }
 
 function LeadProfileRoute({ onBack, onOpenEdit, onSendMessage }) {
@@ -103,12 +103,39 @@ function NegotiationDetailRoute({ onBack }) {
   return <ScreenNegotiationDetail negotiation={negotiation} onBack={onBack} />
 }
 
-export default function App() {
+function LeadEditRoute({ onBack, onOpenProfile }) {
+  const { leadId } = useParams()
+  const leadData = leads.find((l) => String(l.id) === leadId)
+  return <ScreenLeadEdit lead={leadData} onBack={onBack} onOpenProfile={() => onOpenProfile(leadId)} />
+}
+
+function PropertyEditRoute({ onBack, onOpenDetail }) {
+  const { propertyId } = useParams()
+  const property = properties.find((p) => String(p.id) === propertyId)
+  return <ScreenPropertyEdit property={property} onBack={onBack} onOpenDetail={() => onOpenDetail(propertyId)} />
+}
+
+function TenantLayout({ session, onLogout, onChangeSessionUser }) {
+  const { tenant } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
   const [notifOpen, setNotifOpen] = useState(false)
 
-  const currentLabel = getCurrentLabel(location.pathname)
+  if (!session) return <Navigate to="/login" replace />
+  if (session.tenant !== tenant) return <Navigate to={`/${session.tenant}/dashboard`} replace />
+
+  const userName = session.name || 'Usuário'
+  const userPhoto = session.photo || ''
+  const userInitials =
+    userName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'US'
+
+  const currentLabel = getCurrentLabel(location.pathname, tenant)
+  const toPath = (subPath) => `/${tenant}/${subPath}`
 
   return (
     <>
@@ -142,14 +169,14 @@ export default function App() {
               </div>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>Zeety</div>
-                <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CRM Imobiliário</div>
+                <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tenant}</div>
               </div>
             </div>
           </div>
 
           <nav style={{ flex: 1, padding: '12px 10px', overflowY: 'auto' }}>
             {NAV.map((item) => {
-              const path = NAV_ROUTES[item.id]
+              const path = toPath(NAV_ROUTES[item.id])
               const active = location.pathname === path || location.pathname.startsWith(`${path}/`)
               return (
                 <button
@@ -176,8 +203,6 @@ export default function App() {
                   {active && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, background: '#1a56db', borderRadius: '0 4px 4px 0' }} />}
                   <Icon d={icons[item.icon]} size={16} stroke="currentColor" />
                   <span style={{ fontSize: 12, fontWeight: active ? 700 : 500 }}>{item.label}</span>
-                  {item.id === 'whatsapp' && <div style={{ marginLeft: 'auto', width: 16, height: 16, borderRadius: '50%', background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#fff' }}>6</div>}
-                  {item.id === 'leads' && <div style={{ marginLeft: 'auto', width: 16, height: 16, borderRadius: '50%', background: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#fff' }}>3</div>}
                 </button>
               )
             })}
@@ -185,12 +210,16 @@ export default function App() {
 
           <div style={{ padding: '14px 14px', borderTop: '1px solid #f8fafc' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#dbeafe', border: '2px solid #1a56db40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#1a56db' }}>LC</div>
+              {userPhoto ? (
+                <img src={userPhoto} alt={userName} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1a56db40' }} />
+              ) : (
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#dbeafe', border: '2px solid #1a56db40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#1a56db' }}>{userInitials}</div>
+              )}
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Lucas Correia</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{userName}</div>
                 <div style={{ fontSize: 10, color: '#10b981' }}>● Online</div>
               </div>
-              <button onClick={() => navigate('/settings')} style={{ width: 26, height: 26, borderRadius: 8, border: '1px solid #f1f5f9', background: '#f8fafc', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+              <button onClick={() => navigate(toPath('settings'))} style={{ width: 26, height: 26, borderRadius: 8, border: '1px solid #f1f5f9', background: '#f8fafc', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
                 <Icon d={icons.settings} size={13} />
               </button>
             </div>
@@ -203,8 +232,12 @@ export default function App() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 20, padding: '5px 12px' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>IA Ativa · 6 conversas</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>Tenant: {tenant}</span>
             </div>
+
+            <button onClick={onLogout} style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: 10, padding: '7px 12px', fontSize: 11, fontWeight: 700, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}>
+              Sair
+            </button>
 
             <div style={{ position: 'relative' }}>
               <button
@@ -217,11 +250,6 @@ export default function App() {
 
               {notifOpen && (
                 <div style={{ position: 'absolute', top: 46, right: 0, width: 320, background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', zIndex: 100, animation: 'fadeIn 0.15s ease' }}>
-                  <div style={{ padding: '14px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>Notificações</span>
-                    <span style={{ fontSize: 11, color: '#3b82f6', cursor: 'pointer', fontWeight: 600 }}>Marcar todas</span>
-                  </div>
-
                   {notifications.map((n, i) => (
                     <div key={i} style={{ display: 'flex', gap: 12, padding: '12px 16px', borderBottom: i < notifications.length - 1 ? '1px solid #f8fafc' : 'none' }}>
                       <div style={{ width: 34, height: 34, borderRadius: 10, background: n.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -229,8 +257,7 @@ export default function App() {
                       </div>
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{n.title}</div>
-                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>{n.desc}</div>
-                        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>{n.time}</div>
+                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{n.desc}</div>
                       </div>
                     </div>
                   ))}
@@ -238,47 +265,97 @@ export default function App() {
               )}
             </div>
 
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#dbeafe', border: '2px solid #1a56db40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#1a56db' }}>LC</div>
+            {userPhoto ? (
+              <img src={userPhoto} alt={userName} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1a56db40' }} />
+            ) : (
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#dbeafe', border: '2px solid #1a56db40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#1a56db' }}>{userInitials}</div>
+            )}
           </div>
 
           <div style={{ flex: 1, overflow: 'hidden', animation: 'fadeIn 0.2s ease' }} key={location.pathname}>
             <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<ScreenDashboard onOpenLeads={() => navigate('/leads')} onOpenCalendar={() => navigate('/calendar')} />} />
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<ScreenDashboard onOpenLeads={() => navigate(toPath('leads'))} onOpenCalendar={() => navigate(toPath('calendar'))} />} />
 
-              <Route path="/leads" element={<ScreenLeads onOpenLeadProfile={(lead) => navigate(`/leads/${lead?.id || 1}`)} onOpenNewLead={() => navigate('/leads/new')} />} />
-              <Route path="/leads/new" element={<ScreenNewLead onBack={() => navigate('/leads')} onOpenLeadProfile={() => navigate('/leads/1')} />} />
-              <Route path="/leads/:leadId" element={<LeadProfileRoute onBack={() => navigate('/leads')} onOpenEdit={(leadId) => navigate(`/leads/${leadId}/edit`)} onSendMessage={() => navigate('/whatsapp')} />} />
-              <Route path="/leads/:leadId/edit" element={<PlaceholderScreen title="Editar Lead" description="Tela de edição ainda não implementada. A rota já está pronta para integrar o formulário." onBack={() => navigate('/leads')} backLabel="Voltar para Leads" />} />
+              <Route path="leads" element={<ScreenLeads onOpenLeadProfile={(lead) => navigate(toPath(`leads/${lead?.id || 1}`))} onOpenNewLead={() => navigate(toPath('leads/new'))} />} />
+              <Route path="leads/new" element={<ScreenNewLead onBack={() => navigate(toPath('leads'))} onOpenLeadProfile={() => navigate(toPath('leads/1'))} />} />
+              <Route path="leads/:leadId" element={<LeadProfileRoute onBack={() => navigate(toPath('leads'))} onOpenEdit={(leadId) => navigate(toPath(`leads/${leadId}/edit`))} onSendMessage={() => navigate(toPath('whatsapp'))} />} />
+              <Route path="leads/:leadId/edit" element={<LeadEditRoute onBack={() => navigate(toPath('leads'))} onOpenProfile={(leadId) => navigate(toPath(`leads/${leadId}`))} />} />
 
-              <Route path="/pipeline" element={<ScreenPipeline onOpenNegotiationDetail={(n) => navigate(`/pipeline/${n.id}`)} onOpenNewNegotiation={() => navigate('/pipeline/new')} />} />
-              <Route path="/pipeline/new" element={<PlaceholderScreen title="Nova Negociação" description="Fluxo de criação de negociação pendente. A rota já existe e pode receber o formulário." onBack={() => navigate('/pipeline')} backLabel="Voltar para Pipeline" />} />
-              <Route path="/pipeline/:negotiationId" element={<NegotiationDetailRoute onBack={() => navigate('/pipeline')} />} />
+              <Route path="pipeline" element={<ScreenPipeline onOpenNegotiationDetail={(n) => navigate(toPath(`pipeline/${n.id}`))} onOpenNewNegotiation={() => navigate(toPath('pipeline/new'))} />} />
+              <Route path="pipeline/new" element={<ScreenNewNegotiation onBack={() => navigate(toPath('pipeline'))} onOpenDetail={() => navigate(toPath('pipeline/6'))} />} />
+              <Route path="pipeline/:negotiationId" element={<NegotiationDetailRoute onBack={() => navigate(toPath('pipeline'))} />} />
 
-              <Route path="/whatsapp" element={<ScreenWhatsApp onOpenLeadProfile={(lead) => navigate(`/leads/${lead?.id || 1}`)} />} />
+              <Route path="whatsapp" element={<ScreenWhatsApp onOpenLeadProfile={(lead) => navigate(toPath(`leads/${lead?.id || 1}`))} />} />
 
-              <Route path="/calendar" element={<ScreenCalendar onOpenSchedule={() => navigate('/calendar/schedule')} />} />
-              <Route path="/calendar/schedule" element={<ScreenScheduleVisit onBack={() => navigate('/calendar')} />} />
+              <Route path="calendar" element={<ScreenCalendar onOpenSchedule={() => navigate(toPath('calendar/schedule'))} />} />
+              <Route path="calendar/schedule" element={<ScreenScheduleVisit onBack={() => navigate(toPath('calendar'))} />} />
 
-              <Route path="/properties" element={<ScreenProperties onOpenNewProperty={() => navigate('/properties/new')} onOpenPropertyDetail={(p) => navigate(`/properties/${p.id}`)} />} />
-              <Route path="/properties/new" element={<ScreenNewProperty onBack={() => navigate('/properties')} onOpenPropertyDetail={() => navigate('/properties/1')} />} />
-              <Route path="/properties/:propertyId" element={<PropertyDetailRoute onBack={() => navigate('/properties')} onOpenEdit={(propertyId) => navigate(`/properties/${propertyId}/edit`)} onOpenScheduleVisit={() => navigate('/calendar/schedule')} />} />
-              <Route path="/properties/:propertyId/edit" element={<PlaceholderScreen title="Editar Imóvel" description="Tela de edição de imóvel pendente. A rota dinâmica já está ativa." onBack={() => navigate('/properties')} backLabel="Voltar para Imóveis" />} />
+              <Route path="properties" element={<ScreenProperties onOpenNewProperty={() => navigate(toPath('properties/new'))} onOpenPropertyDetail={(p) => navigate(toPath(`properties/${p.id}`))} />} />
+              <Route path="properties/new" element={<ScreenNewProperty onBack={() => navigate(toPath('properties'))} onOpenPropertyDetail={() => navigate(toPath('properties/1'))} />} />
+              <Route path="properties/:propertyId" element={<PropertyDetailRoute onBack={() => navigate(toPath('properties'))} onOpenEdit={(propertyId) => navigate(toPath(`properties/${propertyId}/edit`))} onOpenScheduleVisit={() => navigate(toPath('calendar/schedule'))} />} />
+              <Route path="properties/:propertyId/edit" element={<PropertyEditRoute onBack={() => navigate(toPath('properties'))} onOpenDetail={(propertyId) => navigate(toPath(`properties/${propertyId}`))} />} />
 
-              <Route path="/metrics" element={<ScreenMetrics onOpenGenerateReport={() => navigate('/metrics/report')} />} />
-              <Route path="/metrics/report" element={<ScreenGenerateReport onBack={() => navigate('/metrics')} />} />
+              <Route path="metrics" element={<ScreenMetrics onOpenGenerateReport={() => navigate(toPath('metrics/report'))} />} />
+              <Route path="metrics/report" element={<ScreenGenerateReport onBack={() => navigate(toPath('metrics'))} />} />
 
-              <Route path="/documents" element={<ScreenDocuments onOpenRequestDocuments={() => navigate('/documents/request')} onOpenUpload={() => navigate('/documents/upload')} />} />
-              <Route path="/documents/request" element={<ScreenRequestDocuments onBack={() => navigate('/documents')} />} />
-              <Route path="/documents/upload" element={<PlaceholderScreen title="Upload de Documentos" description="Fluxo de upload individual/em lote ainda não foi implementado." onBack={() => navigate('/documents')} backLabel="Voltar para Documentos" />} />
+              <Route path="documents" element={<ScreenDocuments onOpenRequestDocuments={() => navigate(toPath('documents/request'))} onOpenUpload={() => navigate(toPath('documents/upload'))} />} />
+              <Route path="documents/request" element={<ScreenRequestDocuments onBack={() => navigate(toPath('documents'))} />} />
+              <Route path="documents/upload" element={<ScreenDocumentUpload onBack={() => navigate(toPath('documents'))} />} />
 
-              <Route path="/settings" element={<PlaceholderScreen title="Configurações" description="Página de preferências e integrações ainda não implementada." />} />
+              <Route path="settings" element={<ScreenSettings userName={userName} userPhoto={userPhoto} onChangeUserName={(name) => onChangeSessionUser({ name })} onChangeUserPhoto={(photo) => onChangeSessionUser({ photo })} />} />
 
-              <Route path="*" element={<PlaceholderScreen title="Página não encontrada" description="A rota acessada não existe no Zeety Dashboard." onBack={() => navigate('/dashboard')} backLabel="Ir para Dashboard" />} />
+              <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
           </div>
         </div>
       </div>
     </>
+  )
+}
+
+export default function App() {
+  const [session, setSession] = useState(() => getStoredSession())
+
+  const handleLogin = (nextSession) => {
+    localStorage.setItem('zeety_session', JSON.stringify(nextSession))
+    setSession(nextSession)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('zeety_session')
+    setSession(null)
+  }
+
+  const handleChangeSessionUser = (changes) => {
+    setSession((prev) => {
+      if (!prev) return prev
+      const next = { ...prev, ...changes }
+      localStorage.setItem('zeety_session', JSON.stringify(next))
+      return next
+    })
+  }
+
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          session ? (
+            <Navigate to={`/${session.tenant}/dashboard`} replace />
+          ) : (
+            <ScreenLogin
+              onLogin={(nextSession) => {
+                handleLogin(nextSession)
+              }}
+            />
+          )
+        }
+      />
+
+      <Route path="/:tenant/*" element={<TenantLayout session={session} onLogout={handleLogout} onChangeSessionUser={handleChangeSessionUser} />} />
+
+      <Route path="*" element={<Navigate to={session ? `/${session.tenant}/dashboard` : '/login'} replace />} />
+    </Routes>
   )
 }
