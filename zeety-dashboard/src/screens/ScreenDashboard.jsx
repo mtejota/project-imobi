@@ -45,6 +45,11 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
     { label: 'Propostas', val: proposals, pct: 17, color: '#f97316' },
     { label: 'Fechamentos', val: closings, pct: 6, color: '#10b981' },
   ]
+  const commissionForecast = [
+    { name: 'Lucas Correia', avatar: 'LC', color: '#1a56db', meta: 120000, projected: 98400 },
+    { name: 'Ana Paula', avatar: 'AP', color: '#8b5cf6', meta: 95000, projected: 81100 },
+    { name: 'Marcos Vieira', avatar: 'MV', color: '#f59e0b', meta: 80000, projected: 52300 },
+  ]
   const greetingByHour = getGreetingByHour(time.getHours())
   const displayName = String(userName || 'Usuário').split(' ')[0]
   const dateLabel = time.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
@@ -194,6 +199,41 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
               </div>
             ))}
           </div>
+
+          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '18px 20px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 400) }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Previsão de comissão por corretor</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Meta mensal</div>
+            </div>
+
+            {commissionForecast.map((broker, idx) => {
+              const pct = Math.min(100, Math.round((broker.projected / broker.meta) * 100))
+              const missing = Math.max(0, broker.meta - broker.projected)
+              return (
+                <div key={broker.name} style={{ borderTop: idx === 0 ? 'none' : '1px solid #f8fafc', paddingTop: idx === 0 ? 0 : 12, marginTop: idx === 0 ? 0 : 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <Avatar initials={broker.avatar} color={broker.color} size={30} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{broker.name}</div>
+                      <div style={{ fontSize: 10, color: '#94a3b8' }}>
+                        Projeção: {formatCurrency(broker.projected)} · Falta: {formatCurrency(missing)}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: broker.color, fontFamily: "'DM Mono', monospace" }}>{pct}%</div>
+                  </div>
+
+                  <div style={{ height: 7, background: '#f1f5f9', borderRadius: 6, overflow: 'hidden', marginBottom: 6 }}>
+                    <div style={{ height: '100%', width: showCharts ? `${pct}%` : '0%', background: broker.color, borderRadius: 6, transition: `width 0.7s ease ${idx * 90}ms` }} />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#94a3b8' }}>
+                    <span>Meta: {formatCurrency(broker.meta)}</span>
+                    <span>{pct >= 100 ? 'Meta batida' : 'Em progresso'}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -237,4 +277,8 @@ function useAnimatedNumber(target, duration = 1000) {
   }, [target, duration])
 
   return target % 1 === 0 ? Math.round(value) : Number(value.toFixed(1))
+}
+
+function formatCurrency(value) {
+  return `R$ ${Number(value || 0).toLocaleString('pt-BR')}`
 }

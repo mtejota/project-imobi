@@ -60,6 +60,8 @@ const PERIOD_CONFIG = {
 export default function ScreenCalendar({ onOpenSchedule }) {
   const [view, setView] = useState('Semana')
   const [selectedDay, setSelectedDay] = useState(7)
+  const [smartAgenda, setSmartAgenda] = useState(true)
+  const [travelReminders, setTravelReminders] = useState(true)
   const [animate, setAnimate] = useState(true)
   const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
@@ -97,32 +99,65 @@ export default function ScreenCalendar({ onOpenSchedule }) {
   )
 
   const selectedDayEvents = useMemo(() => {
-    return (dayTemplates[view] || []).map((event, index) => ({
-      ...event,
-      day: selectedDay,
-      property: appointments[index % appointments.length]?.property || 'Imóvel não informado',
-    }))
+    return (dayTemplates[view] || []).map((event, index) => {
+      const probability = event.probability ?? Math.max(42, 88 - index * 9)
+      const travelMinutes = event.travelMinutes ?? (event.type === 'Visita' ? 18 + index * 4 : 10 + index * 3)
+      return {
+        ...event,
+        day: selectedDay,
+        probability,
+        travelMinutes,
+        reminderLead: Math.max(10, travelMinutes - 5),
+        property: appointments[index % appointments.length]?.property || 'Imóvel não informado',
+      }
+    })
   }, [dayTemplates, view, selectedDay])
+
+  const prioritizedEvents = useMemo(() => {
+    const toMinutes = (time) => {
+      const [h, m] = String(time || '00:00').split(':').map(Number)
+      return h * 60 + m
+    }
+
+    const items = [...selectedDayEvents]
+    if (!smartAgenda) return items.sort((a, b) => toMinutes(a.time) - toMinutes(b.time))
+
+    return items.sort((a, b) => {
+      if (b.probability !== a.probability) return b.probability - a.probability
+      return toMinutes(a.time) - toMinutes(b.time)
+    })
+  }, [selectedDayEvents, smartAgenda])
 
   const scheduleByHour = useMemo(() => {
     const map = {}
-    selectedDayEvents.forEach((event) => {
+    prioritizedEvents.forEach((event) => {
       if (!map[event.time]) map[event.time] = []
       map[event.time].push({ ...event, dayIndex: selectedWeekDayIndex })
     })
     return map
-  }, [selectedDayEvents, selectedWeekDayIndex])
+  }, [prioritizedEvents, selectedWeekDayIndex])
 
   const periodStats = useMemo(() => {
-    const total = selectedDayEvents.length
-    const visitas = selectedDayEvents.filter((event) => event.type === 'Visita').length
+    const total = prioritizedEvents.length
+    const visitas = prioritizedEvents.filter((event) => event.type === 'Visita').length
     const reunioes = total - visitas
     return [
       { label: 'Compromissos', value: total, color: '#1a56db' },
       { label: 'Visitas', value: visitas, color: '#10b981' },
       { label: 'Reuniões', value: reunioes, color: '#8b5cf6' },
     ]
-  }, [selectedDayEvents])
+  }, [prioritizedEvents])
+
+  const travelAlerts = useMemo(() => {
+    if (!travelReminders) return []
+    return prioritizedEvents
+      .filter((event) => event.type === 'Visita')
+      .slice(0, 3)
+      .map((event) => ({
+        ...event,
+        alertText: `Saia ${event.reminderLead} min antes (${event.travelMinutes} min de deslocamento).`,
+      }))
+  }, [prioritizedEvents, travelReminders])
 
   const animatedBars = useMemo(() => {
     const base = view === 'Dia' ? 16 : view === 'Semana' ? 24 : 30
@@ -172,6 +207,12 @@ export default function ScreenCalendar({ onOpenSchedule }) {
             )
           })}
           <button onClick={onOpenSchedule} style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>+ Agendar</button>
+          <button onClick={() => setSmartAgenda((value) => !value)} style={{ border: `1px solid ${smartAgenda ? '#86efac' : '#e2e8f0'}`, background: smartAgenda ? '#f0fdf4' : '#fff', color: smartAgenda ? '#15803d' : '#64748b', borderRadius: 10, padding: '8px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+            Agenda inteligente {smartAgenda ? 'ON' : 'OFF'}
+          </button>
+          <button onClick={() => setTravelReminders((value) => !value)} style={{ border: `1px solid ${travelReminders ? '#bfdbfe' : '#e2e8f0'}`, background: travelReminders ? '#eff6ff' : '#fff', color: travelReminders ? '#1d4ed8' : '#64748b', borderRadius: 10, padding: '8px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+            Lembrete deslocamento {travelReminders ? 'ON' : 'OFF'}
+          </button>
         </div>
       </div>
 
@@ -210,13 +251,16 @@ export default function ScreenCalendar({ onOpenSchedule }) {
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid #f8fafc', fontSize: 13, fontWeight: 800, color: '#0f172a' }}>Próximas visitas</div>
-            {selectedDayEvents.map((a, i) => (
-              <div key={`${a.time}-${a.name}-${i}`} style={{ padding: '12px 18px', borderBottom: i < selectedDayEvents.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+            {prioritizedEvents.map((a, i) => (
+              <div key={`${a.time}-${a.name}-${i}`} style={{ padding: '12px 18px', borderBottom: i < prioritizedEvents.length - 1 ? '1px solid #f8fafc' : 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 3, height: 32, borderRadius: 2, background: a.color, flexShrink: 0 }} />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{a.time} · {a.name}</div>
-                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{a.property} · dia {selectedDay}/03</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{a.property} · prob. {a.probability}% · dia {selectedDay}/03</div>
+                    {travelReminders && a.type === 'Visita' && (
+                      <div style={{ fontSize: 10, color: '#1d4ed8', marginTop: 2 }}>Lembrete: sair {a.reminderLead} min antes</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -244,6 +288,16 @@ export default function ScreenCalendar({ onOpenSchedule }) {
               {animatedBars.map((bar, index) => (
                 <div key={index} style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'flex-end' }}>
                   <div style={{ width: '100%', height: animate ? `${bar}%` : '8%', background: 'linear-gradient(180deg, #3b82f6, #1a56db)', borderRadius: '6px 6px 3px 3px', transition: `height 0.45s ease ${index * 35}ms` }} />
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 12, borderTop: '1px solid #f1f5f9', paddingTop: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>Lembretes de deslocamento</div>
+              {travelAlerts.length === 0 && <div style={{ fontSize: 10, color: '#94a3b8' }}>Lembretes desativados.</div>}
+              {travelAlerts.map((alert) => (
+                <div key={`${alert.time}-${alert.name}`} style={{ fontSize: 10, color: '#1d4ed8', marginBottom: 4 }}>
+                  {alert.time} · {alert.name}: {alert.alertText}
                 </div>
               ))}
             </div>
