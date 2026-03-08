@@ -7,29 +7,81 @@ import {
   ScreenCalendar,
   ScreenDashboard,
   ScreenDocuments,
+  ScreenGenerateReport,
   ScreenLeads,
+  ScreenLeadProfile,
   ScreenMetrics,
+  ScreenNewProperty,
+  ScreenNegotiationDetail,
+  ScreenNewLead,
   ScreenPipeline,
+  ScreenPropertyDetail,
   ScreenProperties,
+  ScreenRequestDocuments,
+  ScreenScheduleVisit,
   ScreenWhatsApp,
 } from './screens'
 
 export default function App() {
   const [screen, setScreen] = useState('dashboard')
   const [notifOpen, setNotifOpen] = useState(false)
+  const [selectedProperty, setSelectedProperty] = useState(null)
+  const [selectedNegotiation, setSelectedNegotiation] = useState(null)
 
   const screens = {
     dashboard: <ScreenDashboard />,
-    leads: <ScreenLeads />,
-    pipeline: <ScreenPipeline />,
+    leads: <ScreenLeads onOpenLeadProfile={() => setScreen('lead-profile')} onOpenNewLead={() => setScreen('new-lead')} />,
+    'lead-profile': <ScreenLeadProfile onBack={() => setScreen('leads')} />,
+    'new-lead': <ScreenNewLead onBack={() => setScreen('leads')} onOpenLeadProfile={() => setScreen('lead-profile')} />,
+    pipeline: (
+      <ScreenPipeline
+        onOpenNegotiationDetail={(n) => {
+          setSelectedNegotiation(n)
+          setScreen('negotiation-detail')
+        }}
+      />
+    ),
+    'negotiation-detail': <ScreenNegotiationDetail negotiation={selectedNegotiation} onBack={() => setScreen('pipeline')} />,
     whatsapp: <ScreenWhatsApp />,
-    calendar: <ScreenCalendar />,
-    properties: <ScreenProperties />,
-    metrics: <ScreenMetrics />,
-    documents: <ScreenDocuments />,
+    calendar: <ScreenCalendar onOpenSchedule={() => setScreen('schedule-visit')} />,
+    'schedule-visit': <ScreenScheduleVisit onBack={() => setScreen('calendar')} />,
+    properties: (
+      <ScreenProperties
+        onOpenNewProperty={() => setScreen('new-property')}
+        onOpenPropertyDetail={(p) => {
+          setSelectedProperty(p)
+          setScreen('property-detail')
+        }}
+      />
+    ),
+    'new-property': <ScreenNewProperty onBack={() => setScreen('properties')} onOpenPropertyDetail={() => setScreen('property-detail')} />,
+    'property-detail': <ScreenPropertyDetail property={selectedProperty} onBack={() => setScreen('properties')} />,
+    metrics: <ScreenMetrics onOpenGenerateReport={() => setScreen('generate-report')} />,
+    'generate-report': <ScreenGenerateReport onBack={() => setScreen('metrics')} />,
+    documents: <ScreenDocuments onOpenRequestDocuments={() => setScreen('request-documents')} />,
+    'request-documents': <ScreenRequestDocuments onBack={() => setScreen('documents')} />,
   }
 
   const current = NAV.find((n) => n.id === screen)
+  const currentLabel =
+    current?.label ||
+    (screen === 'lead-profile'
+      ? 'Perfil Lead'
+      : screen === 'new-lead'
+      ? 'Novo Lead'
+      : screen === 'property-detail'
+      ? 'Detalhe do Imóvel'
+      : screen === 'new-property'
+      ? 'Cadastrar Imóvel'
+      : screen === 'schedule-visit'
+      ? 'Agendar Visita'
+      : screen === 'negotiation-detail'
+      ? 'Detalhe da Negociação'
+      : screen === 'generate-report'
+      ? 'Gerar Relatório'
+      : screen === 'request-documents'
+      ? 'Solicitar Documentos'
+      : '')
 
   return (
     <>
@@ -125,7 +177,7 @@ export default function App() {
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ height: 56, background: '#fff', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', paddingLeft: 28, paddingRight: 20, flexShrink: 0, gap: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', flex: 1 }}>{current?.label}</span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', flex: 1 }}>{currentLabel}</span>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 20, padding: '5px 12px' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />

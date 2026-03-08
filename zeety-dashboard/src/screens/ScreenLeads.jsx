@@ -5,7 +5,7 @@ import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 import { leads } from '../data'
 
-export default function ScreenLeads() {
+export default function ScreenLeads({ onOpenLeadProfile, onOpenNewLead }) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('Todos')
 
@@ -22,7 +22,7 @@ export default function ScreenLeads() {
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Leads</div>
           <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>{leads.length} contatos · 3 quentes hoje</div>
         </div>
-        <button style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button onClick={onOpenNewLead} style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon d={icons.plus} size={14} stroke="#fff" /> Novo Lead
         </button>
       </div>
@@ -87,6 +87,7 @@ export default function ScreenLeads() {
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent'
             }}
+            onClick={() => onOpenLeadProfile?.(l)}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Avatar initials={l.avatar} color={l.color} size={36} />

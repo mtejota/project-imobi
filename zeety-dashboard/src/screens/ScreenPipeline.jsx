@@ -1,7 +1,7 @@
 import Avatar from '../components/Avatar'
 import { pipeline } from '../data'
 
-export default function ScreenPipeline() {
+export default function ScreenPipeline({ onOpenNegotiationDetail }) {
   const stages = Object.keys(pipeline)
   const stageColors = { Prospecção: '#64748b', Visita: '#3b82f6', Proposta: '#f59e0b', Negociação: '#f97316', Fechamento: '#10b981' }
   const total = stages.reduce((sum, s) => sum + pipeline[s].length, 0)
@@ -52,6 +52,7 @@ export default function ScreenPipeline() {
                     e.currentTarget.style.transform = 'none'
                     e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'
                   }}
+                  onClick={() => onOpenNegotiationDetail?.({ ...card, stage })}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                     <Avatar initials={card.avatar} color={card.color} size={30} />

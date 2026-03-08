@@ -1,6 +1,6 @@
 import { appointments } from '../data'
 
-export default function ScreenCalendar() {
+export default function ScreenCalendar({ onOpenSchedule }) {
   const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
 
@@ -22,7 +22,7 @@ export default function ScreenCalendar() {
           {['Dia', 'Semana', 'Mês'].map((v) => (
             <button key={v} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid', borderColor: v === 'Semana' ? '#1a56db' : '#e2e8f0', background: v === 'Semana' ? '#eff6ff' : '#fff', color: v === 'Semana' ? '#1a56db' : '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{v}</button>
           ))}
-          <button style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>+ Agendar</button>
+          <button onClick={onOpenSchedule} style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>+ Agendar</button>
         </div>
       </div>
 

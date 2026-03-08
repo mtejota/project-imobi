@@ -1,14 +1,22 @@
 import StatCard from '../components/StatCard'
 
-export default function ScreenMetrics() {
+export default function ScreenMetrics({ onOpenGenerateReport }) {
   const bars = [65, 80, 72, 90, 58, 85, 70, 95, 60, 88, 75, 92]
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
   return (
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%' }}>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Métricas & Performance</div>
-        <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Março 2026 · Atualizado em tempo real</div>
+      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Métricas & Performance</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Março 2026 · Atualizado em tempo real</div>
+        </div>
+        <button
+          onClick={onOpenGenerateReport}
+          style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+        >
+          Gerar Relatório
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>

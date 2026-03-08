@@ -1,7 +1,7 @@
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
-export default function ScreenDocuments() {
+export default function ScreenDocuments({ onOpenRequestDocuments }) {
   const docs = [
     { name: 'Proposta Comercial - Beatriz Santos.pdf', type: 'Proposta', size: '184 KB', date: '05/03', status: 'Enviado', color: '#8b5cf6' },
     { name: 'RG + CPF - João Ferreira.pdf', type: 'Documento', size: '2.1 MB', date: '06/03', status: 'Recebido', color: '#3b82f6' },
@@ -25,7 +25,7 @@ export default function ScreenDocuments() {
           <button style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid #e2e8f0', background: '#fff', fontSize: 13, fontWeight: 600, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon d={icons.upload} size={14} /> Upload
           </button>
-          <button style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ Nova Solicitação</button>
+          <button onClick={onOpenRequestDocuments} style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ Nova Solicitação</button>
         </div>
       </div>
 
@@ -35,7 +35,7 @@ export default function ScreenDocuments() {
           <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>2 documentos pendentes de Rafael Mendes</div>
           <div style={{ fontSize: 12, color: '#b45309', marginTop: 2 }}>Comprovante de residência e extratos bancários · IA enviou lembrete automático</div>
         </div>
-        <button style={{ marginLeft: 'auto', padding: '7px 14px', borderRadius: 8, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Ver</button>
+        <button onClick={onOpenRequestDocuments} style={{ marginLeft: 'auto', padding: '7px 14px', borderRadius: 8, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Ver</button>
       </div>
 
       <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
