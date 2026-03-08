@@ -1,0 +1,8 @@
+export { default as ScreenDashboard } from './ScreenDashboard'
+export { default as ScreenLeads } from './ScreenLeads'
+export { default as ScreenPipeline } from './ScreenPipeline'
+export { default as ScreenWhatsApp } from './ScreenWhatsApp'
+export { default as ScreenCalendar } from './ScreenCalendar'
+export { default as ScreenProperties } from './ScreenProperties'
+export { default as ScreenMetrics } from './ScreenMetrics'
+export { default as ScreenDocuments } from './ScreenDocuments'
