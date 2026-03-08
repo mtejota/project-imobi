@@ -4,6 +4,7 @@ import Icon from './components/Icon'
 import { icons } from './constants/icons'
 import { NAV } from './constants/nav'
 import { leads, notifications, pipeline, properties } from './data'
+import { loginTenantUser, registerTenantUser } from './services/authService'
 import {
   ScreenCalendar,
   ScreenDashboard,
@@ -26,6 +27,7 @@ import {
   ScreenRequestDocuments,
   ScreenScheduleVisit,
   ScreenSettings,
+  ScreenSupport,
   ScreenWhatsApp,
 } from './screens'
 
@@ -38,6 +40,7 @@ const NAV_ROUTES = {
   properties: 'properties',
   metrics: 'metrics',
   documents: 'documents',
+  support: 'support',
 }
 
 function getStoredSession() {
@@ -74,6 +77,7 @@ function getCurrentLabel(pathname, tenant) {
   if (subPath === '/documents') return 'Documentos'
   if (subPath === '/documents/request') return 'Solicitar Documentos'
   if (subPath === '/documents/upload') return 'Upload de Documentos'
+  if (subPath === '/support') return 'Suporte'
   if (subPath === '/settings') return 'Configurações'
   return 'Zeety CRM'
 }
@@ -230,11 +234,6 @@ function TenantLayout({ session, onLogout, onChangeSessionUser }) {
           <div style={{ height: 56, background: '#fff', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', paddingLeft: 28, paddingRight: 20, flexShrink: 0, gap: 12 }}>
             <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', flex: 1 }}>{currentLabel}</span>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 20, padding: '5px 12px' }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>Tenant: {tenant}</span>
-            </div>
-
             <button onClick={onLogout} style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: 10, padding: '7px 12px', fontSize: 11, fontWeight: 700, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}>
               Sair
             </button>
@@ -302,8 +301,21 @@ function TenantLayout({ session, onLogout, onChangeSessionUser }) {
               <Route path="documents" element={<ScreenDocuments onOpenRequestDocuments={() => navigate(toPath('documents/request'))} onOpenUpload={() => navigate(toPath('documents/upload'))} />} />
               <Route path="documents/request" element={<ScreenRequestDocuments onBack={() => navigate(toPath('documents'))} />} />
               <Route path="documents/upload" element={<ScreenDocumentUpload onBack={() => navigate(toPath('documents'))} />} />
+              <Route path="support" element={<ScreenSupport />} />
 
-              <Route path="settings" element={<ScreenSettings userName={userName} userPhoto={userPhoto} onChangeUserName={(name) => onChangeSessionUser({ name })} onChangeUserPhoto={(photo) => onChangeSessionUser({ photo })} />} />
+              <Route
+                path="settings"
+                element={
+                  <ScreenSettings
+                    userName={userName}
+                    userEmail={session.email || ''}
+                    userCreci={session.creci || ''}
+                    userPhoto={userPhoto}
+                    onChangeUserName={(name) => onChangeSessionUser({ name })}
+                    onChangeUserPhoto={(photo) => onChangeSessionUser({ photo })}
+                  />
+                }
+              />
 
               <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
@@ -336,6 +348,16 @@ export default function App() {
     })
   }
 
+  const handleLoginWithCredentials = async ({ email, password }) => {
+    const { session: nextSession } = await loginTenantUser({ email, password })
+    handleLogin(nextSession)
+  }
+
+  const handleRegisterWithCredentials = async ({ name, email, password, creci }) => {
+    const { session: nextSession } = await registerTenantUser({ name, email, password, creci })
+    handleLogin(nextSession)
+  }
+
   return (
     <Routes>
       <Route
@@ -345,9 +367,8 @@ export default function App() {
             <Navigate to={`/${session.tenant}/dashboard`} replace />
           ) : (
             <ScreenLogin
-              onLogin={(nextSession) => {
-                handleLogin(nextSession)
-              }}
+              onLogin={handleLoginWithCredentials}
+              onRegister={handleRegisterWithCredentials}
             />
           )
         }

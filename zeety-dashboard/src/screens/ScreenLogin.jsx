@@ -2,33 +2,50 @@ import { useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
-export default function ScreenLogin({ onLogin }) {
-  const [email, setEmail] = useState('lucas@zeety.com.br')
-  const [password, setPassword] = useState('123456')
+export default function ScreenLogin({ onLogin, onRegister }) {
+  const [mode, setMode] = useState('login')
+  const [name, setName] = useState('')
+  const [creci, setCreci] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const isLogin = mode === 'login'
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (!email.trim() || !password.trim()) {
+    if (isLogin && (!email.trim() || !password.trim())) {
       setError('Preencha e-mail e senha para continuar.')
       return
     }
 
-    setLoading(true)
-    setTimeout(() => {
-      const normalizedEmail = email.trim().toLowerCase()
-      const domain = normalizedEmail.split('@')[1] || ''
-      const tenantFromDomain = domain.split('.')[0] || 'zeety'
+    if (!isLogin) {
+      if (!name.trim() || !email.trim() || !password.trim() || !creci.trim()) {
+        setError('Preencha nome, e-mail, senha e CRECI para cadastrar.')
+        return
+      }
+      if (password !== confirmPassword) {
+        setError('As senhas não conferem.')
+        return
+      }
+    }
+
+    try {
+      setLoading(true)
+      if (isLogin) {
+        await onLogin?.({ email, password })
+      } else {
+        await onRegister?.({ name, creci, email, password })
+      }
+    } catch (err) {
+      setError(err?.message || 'Não foi possível autenticar no momento.')
+    } finally {
       setLoading(false)
-      onLogin?.({
-        tenant: tenantFromDomain,
-        email: normalizedEmail,
-        name: email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()),
-      })
-    }, 700)
+    }
   }
 
   return (
@@ -58,8 +75,29 @@ export default function ScreenLogin({ onLogin }) {
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '50px 42px', fontFamily: "'Sora', sans-serif" }}>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 4, fontFamily: "'Space Grotesk', 'Sora', sans-serif" }}>Entrar</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 28 }}>Use seu e-mail e senha para acessar seu workspace.</div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+            <button type="button" onClick={() => { setMode('login'); setError('') }} style={{ flex: 1, border: `1px solid ${isLogin ? '#1a56db' : '#e2e8f0'}`, background: isLogin ? '#eff6ff' : '#fff', color: isLogin ? '#1a56db' : '#64748b', borderRadius: 10, padding: '9px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Entrar
+            </button>
+            <button type="button" onClick={() => { setMode('register'); setError('') }} style={{ flex: 1, border: `1px solid ${!isLogin ? '#1a56db' : '#e2e8f0'}`, background: !isLogin ? '#eff6ff' : '#fff', color: !isLogin ? '#1a56db' : '#64748b', borderRadius: 10, padding: '9px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Criar conta
+            </button>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 4, fontFamily: "'Space Grotesk', 'Sora', sans-serif" }}>{isLogin ? 'Entrar' : 'Criar conta'}</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 24 }}>
+            {isLogin ? 'Use seu e-mail e senha para acessar seu workspace.' : 'Cadastre sua conta e o ambiente do cliente será criado automaticamente.'}
+          </div>
+
+          {!isLogin && (
+            <>
+              <Field label="Nome completo">
+                <input value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="Seu nome" style={inputStyle} />
+              </Field>
+              <Field label="CRECI">
+                <input value={creci} onChange={(e) => setCreci(e.target.value)} type="text" placeholder="Ex: 123456-F" style={inputStyle} />
+              </Field>
+            </>
+          )}
 
           <Field label="E-mail">
             <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="voce@empresa.com" style={inputStyle} />
@@ -69,10 +107,16 @@ export default function ScreenLogin({ onLogin }) {
             <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="••••••••" style={inputStyle} />
           </Field>
 
+          {!isLogin && (
+            <Field label="Confirmar senha">
+              <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" placeholder="••••••••" style={inputStyle} />
+            </Field>
+          )}
+
           {error && <div style={{ marginBottom: 18, marginTop: 4, fontSize: 12, color: '#ef4444', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 12px' }}>{error}</div>}
 
           <button type="submit" style={{ width: '100%', marginTop: 4, border: 'none', background: 'linear-gradient(135deg, #1a56db, #2563eb)', color: '#fff', borderRadius: 12, padding: '12px 14px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 10px 22px rgba(37,99,235,0.24)' }}>
-            {loading ? 'Entrando...' : 'Acessar dashboard'}
+            {loading ? (isLogin ? 'Entrando...' : 'Criando conta...') : isLogin ? 'Acessar dashboard' : 'Cadastrar e entrar'}
           </button>
 
         </form>

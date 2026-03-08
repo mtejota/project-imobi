@@ -11,7 +11,7 @@ const tabs = [
 const fakeQr =
   'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220"><rect width="220" height="220" fill="white"/><rect x="10" y="10" width="60" height="60" fill="black"/><rect x="20" y="20" width="40" height="40" fill="white"/><rect x="30" y="30" width="20" height="20" fill="black"/><rect x="150" y="10" width="60" height="60" fill="black"/><rect x="160" y="20" width="40" height="40" fill="white"/><rect x="170" y="30" width="20" height="20" fill="black"/><rect x="10" y="150" width="60" height="60" fill="black"/><rect x="20" y="160" width="40" height="40" fill="white"/><rect x="30" y="170" width="20" height="20" fill="black"/><rect x="90" y="90" width="10" height="10" fill="black"/><rect x="110" y="90" width="10" height="10" fill="black"/><rect x="130" y="90" width="10" height="10" fill="black"/><rect x="90" y="110" width="10" height="10" fill="black"/><rect x="110" y="110" width="10" height="10" fill="black"/><rect x="130" y="110" width="10" height="10" fill="black"/><rect x="90" y="130" width="10" height="10" fill="black"/><rect x="110" y="130" width="10" height="10" fill="black"/><rect x="130" y="130" width="10" height="10" fill="black"/></svg>'
 
-export default function ScreenSettings({ userName = 'Lucas Correia', userPhoto = '', onChangeUserName, onChangeUserPhoto }) {
+export default function ScreenSettings({ userName = 'Lucas Correia', userEmail = 'lucas@zeety.com.br', userCreci = '', userPhoto = '', onChangeUserName, onChangeUserPhoto }) {
   const [tab, setTab] = useState('general')
   const [saving, setSaving] = useState(false)
   const [photoName, setPhotoName] = useState('Sem arquivo selecionado')
@@ -175,7 +175,12 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userPhoto =
                   />
                 </Field>
                 <Field label="Fuso horário"><Input defaultValue="America/Sao_Paulo" /></Field>
-                <Field label="E-mail do usuário"><Input defaultValue="lucas@zeety.com.br" /></Field>
+                <Field label="E-mail do usuário">
+                  <Input value={userEmail} readOnly />
+                </Field>
+                <Field label="CRECI">
+                  <Input value={userCreci || '-'} readOnly disabled />
+                </Field>
                 <Field label="Telefone"><Input defaultValue="+55 (11) 99888-7766" /></Field>
                 </div>
 
@@ -269,8 +274,26 @@ function Field({ label, children }) {
   )
 }
 
-function Input(props) {
-  return <input {...props} style={{ width: '100%', borderRadius: 12, border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
+function Input({ style, disabled, ...props }) {
+  return (
+    <input
+      {...props}
+      disabled={disabled}
+      style={{
+        width: '100%',
+        borderRadius: 12,
+        border: '1px solid #e2e8f0',
+        padding: '10px 12px',
+        fontSize: 13,
+        fontFamily: 'inherit',
+        outline: 'none',
+        background: disabled ? '#f8fafc' : '#fff',
+        color: disabled ? '#64748b' : '#0f172a',
+        cursor: disabled ? 'not-allowed' : 'text',
+        ...style,
+      }}
+    />
+  )
 }
 
 function IntegrationCard({ title, subtitle, status, statusColor, actionLabel, onAction, children }) {

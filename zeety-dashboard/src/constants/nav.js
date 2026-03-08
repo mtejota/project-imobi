@@ -7,4 +7,5 @@ export const NAV = [
   { id: 'properties', label: 'Imóveis', icon: 'building' },
   { id: 'metrics', label: 'Métricas', icon: 'chart' },
   { id: 'documents', label: 'Documentos', icon: 'file' },
+  { id: 'support', label: 'Suporte', icon: 'support' },
 ]
