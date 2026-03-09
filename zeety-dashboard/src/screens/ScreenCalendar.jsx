@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { appointments } from '../data'
 
 const PERIOD_CONFIG = {
   Dia: {
@@ -10,7 +9,7 @@ const PERIOD_CONFIG = {
       { label: 'Reuniões', value: 2, color: '#8b5cf6' },
     ],
     bars: [22, 36, 44, 52, 40, 31, 18],
-    upcoming: appointments.slice(0, 3),
+    upcoming: [],
     schedule: {
       '09:00': [{ dayIndex: 2, name: 'João Ferreira', type: 'Visita', color: '#3b82f6' }],
       '11:00': [{ dayIndex: 2, name: 'Ana Rodrigues', type: 'Visita', color: '#f59e0b' }],
@@ -27,7 +26,7 @@ const PERIOD_CONFIG = {
       { label: 'Reuniões', value: 5, color: '#8b5cf6' },
     ],
     bars: [30, 42, 55, 67, 58, 45, 32],
-    upcoming: appointments,
+    upcoming: [],
     schedule: {
       '09:00': [{ dayIndex: 1, name: 'João Ferreira', type: 'Visita', color: '#3b82f6' }],
       '10:00': [{ dayIndex: 4, name: 'Camila Prado', type: 'Reunião', color: '#8b5cf6' }],
@@ -45,7 +44,7 @@ const PERIOD_CONFIG = {
       { label: 'Reuniões', value: 18, color: '#8b5cf6' },
     ],
     bars: [45, 52, 61, 77, 69, 58, 49],
-    upcoming: appointments.slice(0, 4),
+    upcoming: [],
     schedule: {
       '09:00': [{ dayIndex: 0, name: 'Gabriel Matos', type: 'Visita', color: '#3b82f6' }],
       '11:00': [{ dayIndex: 2, name: 'Ana Rodrigues', type: 'Visita', color: '#f59e0b' }],
@@ -57,7 +56,7 @@ const PERIOD_CONFIG = {
   },
 }
 
-export default function ScreenCalendar({ onOpenSchedule }) {
+export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
   const [view, setView] = useState('Semana')
   const [selectedDay, setSelectedDay] = useState(7)
   const [smartAgenda, setSmartAgenda] = useState(true)

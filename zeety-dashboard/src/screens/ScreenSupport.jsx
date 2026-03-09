@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
+import { supportApi } from '../api'
 
 const CATEGORIES = ['Problema técnico', 'Erro de integração', 'Cobrança', 'Sugestão', 'Outro']
 const PRIORITIES = ['Baixa', 'Média', 'Alta']
@@ -39,13 +40,29 @@ export default function ScreenSupport() {
     })
   }
 
-  const submitTicket = () => {
+  const submitTicket = async () => {
     if (!canSend) return
     setSending(true)
-    setTimeout(() => {
+
+    try {
+      const ticket = await supportApi.createSupportTicket({
+        category,
+        priority,
+        subject,
+        description,
+      })
+
+      const nextTicketId = ticket.id || ticket.ticketId
+      if (nextTicketId && attachments.length > 0) {
+        await Promise.all(
+          attachments.map((attachment) => supportApi.uploadSupportAttachment(nextTicketId, attachment.file))
+        )
+      }
+
+      setTicketId(nextTicketId || `SUP-${Math.floor(10000 + Math.random() * 90000)}`)
+    } finally {
       setSending(false)
-      setTicketId(`SUP-${Math.floor(10000 + Math.random() * 90000)}`)
-    }, 1000)
+    }
   }
 
   return (

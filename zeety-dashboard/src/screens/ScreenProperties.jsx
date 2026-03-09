@@ -1,14 +1,15 @@
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
-import { properties } from '../data'
 
-export default function ScreenProperties({ onOpenPropertyDetail, onOpenNewProperty }) {
+export default function ScreenProperties({ properties = [], onOpenPropertyDetail, onOpenNewProperty }) {
   return (
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Imóveis</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>12 imóveis em carteira · 9 disponíveis</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>
+            {properties.length} imóveis em carteira · {properties.filter((p) => String(p.status || '').toLowerCase().includes('dispon')).length} disponíveis
+          </div>
         </div>
         <button onClick={onOpenNewProperty} style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ Cadastrar Imóvel</button>
       </div>

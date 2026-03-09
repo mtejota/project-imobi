@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
-import { leads, properties } from '../data'
 
 const STAGES = ['Prospecção', 'Visita', 'Proposta', 'Negociação']
 
-export default function ScreenNewNegotiation({ onBack, onOpenDetail }) {
-  const [leadId, setLeadId] = useState(String(leads[0]?.id || 1))
-  const [propertyId, setPropertyId] = useState(String(properties[0]?.id || 1))
+export default function ScreenNewNegotiation({ leads = [], properties = [], onBack, onOpenDetail }) {
+  const [leadId, setLeadId] = useState(String(leads[0]?.id || ''))
+  const [propertyId, setPropertyId] = useState(String(properties[0]?.id || ''))
   const [stage, setStage] = useState('Prospecção')
   const [value, setValue] = useState('750000')
   const [priority, setPriority] = useState('Média')

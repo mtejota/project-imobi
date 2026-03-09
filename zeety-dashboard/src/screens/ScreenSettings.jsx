@@ -1,6 +1,7 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
+import { whatsappApi } from '../api'
 
 const tabs = [
   { id: 'general', label: 'Geral' },
@@ -18,6 +19,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
   const [showQr, setShowQr] = useState(false)
   const [pairing, setPairing] = useState(false)
   const [evolutionInstance, setEvolutionInstance] = useState('')
+  const [qrCodeValue, setQrCodeValue] = useState('')
   const fileInputRef = useRef(null)
   const previousPhotoRef = useRef('')
 
@@ -44,6 +46,23 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
     setTimeout(() => setSaving(false), 800)
   }
 
+  useEffect(() => {
+    let mounted = true
+    whatsappApi
+      .getWhatsAppIntegrationStatus()
+      .then((status) => {
+        if (!mounted) return
+        setEvolutionInstance(status.instanceId || status.waInstanceId || '')
+      })
+      .catch(() => {
+        if (!mounted) return
+        setEvolutionInstance('')
+      })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -56,14 +75,17 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
     setPhotoName(file.name)
   }
 
-  const handleQrConnect = () => {
+  const handleQrConnect = async () => {
     setPairing(true)
-    setTimeout(() => {
-      const newInstance = `zeety-${Date.now()}`
+    try {
+      const response = await whatsappApi.connectWhatsAppByQr()
+      const newInstance = response.instanceId || response.waInstanceId || ''
+      setQrCodeValue(response.qrCode || response.qr || '')
       setEvolutionInstance(newInstance)
-      setPairing(false)
       setShowQr(false)
-    }, 1800)
+    } finally {
+      setPairing(false)
+    }
   }
 
   return (
@@ -79,7 +101,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-              <img src={fakeQr} alt="QR Code WhatsApp" style={{ width: 220, height: 220, borderRadius: 12, border: '1px solid #e2e8f0' }} />
+              <img src={qrCodeValue || fakeQr} alt="QR Code WhatsApp" style={{ width: 220, height: 220, borderRadius: 12, border: '1px solid #e2e8f0' }} />
             </div>
 
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '10px 12px', fontSize: 12, color: '#1d4ed8', lineHeight: 1.5, marginBottom: 12 }}>
@@ -91,7 +113,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
                 Cancelar
               </button>
               <button onClick={handleQrConnect} style={{ flex: 1, border: 'none', background: '#1a56db', color: '#fff', borderRadius: 10, padding: '10px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {pairing ? 'Conectando...' : 'Simular conexão'}
+                {pairing ? 'Conectando...' : 'Conectar agora'}
               </button>
             </div>
           </div>

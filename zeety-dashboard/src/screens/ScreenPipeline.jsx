@@ -1,19 +1,23 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
-import { pipeline as initialPipeline } from '../data'
 
-export default function ScreenPipeline({ onOpenNegotiationDetail, onOpenNewNegotiation }) {
+export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiationDetail, onOpenNewNegotiation }) {
   const stageColors = { Prospecção: '#64748b', Visita: '#3b82f6', Proposta: '#f59e0b', Negociação: '#f97316', Fechamento: '#10b981' }
-  const stages = Object.keys(initialPipeline)
+  const stages = Object.keys(initialPipeline || {})
   const [pipelineState, setPipelineState] = useState(() =>
-    Object.fromEntries(stages.map((stage) => [stage, [...initialPipeline[stage]]]))
+    Object.fromEntries(stages.map((stage) => [stage, [...(initialPipeline[stage] || [])]]))
   )
   const [draggingCardId, setDraggingCardId] = useState(null)
   const [draggingFromStage, setDraggingFromStage] = useState('')
   const [dragOverStage, setDragOverStage] = useState('')
   const [pendingMove, setPendingMove] = useState(null)
+
+  useEffect(() => {
+    const nextStages = Object.keys(initialPipeline || {})
+    setPipelineState(Object.fromEntries(nextStages.map((stage) => [stage, [...(initialPipeline[stage] || [])]])))
+  }, [initialPipeline])
 
   const total = useMemo(
     () => stages.reduce((sum, stage) => sum + pipelineState[stage].length, 0),

@@ -2,31 +2,40 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
-import { chatHistory, messages } from '../data'
+const defaultChatHistory = []
+const defaultMessages = []
 
-const defaultConversations = Object.fromEntries(messages.map((m) => [m.id, [...chatHistory]]))
+const defaultConversations = {}
 
-export default function ScreenWhatsApp({ onOpenLeadProfile }) {
+export default function ScreenWhatsApp({ conversations = [], onOpenLeadProfile }) {
   const [active, setActive] = useState(0)
   const [search, setSearch] = useState('')
   const [msg, setMsg] = useState('')
   const [tab, setTab] = useState('all')
-  const [conversations, setConversations] = useState(defaultConversations)
+  const [conversationMap, setConversationMap] = useState(defaultConversations)
   const endRef = useRef(null)
+  const messages = Array.isArray(conversations) ? conversations : defaultMessages
+
+  useEffect(() => {
+    const nextMap = Object.fromEntries(
+      (messages || []).map((item) => [item.id, Array.isArray(item.messages) ? item.messages : defaultChatHistory])
+    )
+    setConversationMap(nextMap)
+  }, [messages])
 
   const filteredMessages = useMemo(() => {
     return messages.filter((m) => {
       const bySearch =
-        m.name.toLowerCase().includes(search.toLowerCase()) ||
-        m.last.toLowerCase().includes(search.toLowerCase())
+        String(m.name || '').toLowerCase().includes(search.toLowerCase()) ||
+        String(m.last || '').toLowerCase().includes(search.toLowerCase())
       const byTab =
         tab === 'all' || (tab === 'unread' && m.unread > 0) || (tab === 'hot' && m.hot)
       return bySearch && byTab
     })
   }, [search, tab])
 
-  const activeMessage = filteredMessages[active] || filteredMessages[0] || messages[0]
-  const activeConversation = conversations[activeMessage.id] || chatHistory
+  const activeMessage = filteredMessages[active] || filteredMessages[0] || messages[0] || { id: 'empty', name: 'Sem conversas', last: '', time: '', unread: 0, hot: false, avatar: 'SC', color: '#94a3b8' }
+  const activeConversation = conversationMap[activeMessage.id] || defaultChatHistory
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -39,10 +48,10 @@ export default function ScreenWhatsApp({ onOpenLeadProfile }) {
   const sendMessage = () => {
     if (!msg.trim()) return
 
-    setConversations((prev) => ({
+    setConversationMap((prev) => ({
       ...prev,
       [activeMessage.id]: [
-        ...(prev[activeMessage.id] || chatHistory),
+        ...(prev[activeMessage.id] || defaultChatHistory),
         {
           from: 'user',
           text: msg.trim(),

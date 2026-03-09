@@ -2,29 +2,16 @@ import { useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
-const leads = [
-  { id: 1, name: 'João Ferreira', avatar: 'JF', color: '#ef4444', phone: '(11) 98765-4321', score: 92 },
-  { id: 2, name: 'Ana Rodrigues', avatar: 'AR', color: '#f59e0b', phone: '(11) 91234-5678', score: 74 },
-  { id: 3, name: 'Beatriz Santos', avatar: 'BS', color: '#8b5cf6', phone: '(11) 97654-3210', score: 88 },
-  { id: 4, name: 'Rafael Mendes', avatar: 'RM', color: '#10b981', phone: '(11) 95432-1098', score: 65 },
-]
-
-const properties = [
-  { id: 1, title: 'Ap. 2Q — Pinheiros', address: 'Rua dos Pinheiros, 1247', price: 'R$ 750.000', img: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=120&q=80' },
-  { id: 2, title: 'Casa 4Q — Morumbi', address: 'Av. Giovanni Gronchi, 5000', price: 'R$ 1.800.000', img: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=120&q=80' },
-  { id: 3, title: 'Cobertura — Itaim', address: 'Rua Jerônimo da Veiga, 384', price: 'R$ 1.200.000', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=120&q=80' },
-]
-
 const TIMES = ['08:00', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30']
 const DAYS_HEADER = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const MARCH_OFFSET = 6
 const BUSY_DAYS = [3, 5, 8, 10, 12, 15, 18, 20, 22]
 
-export default function ScreenScheduleVisit({ onBack }) {
+export default function ScreenScheduleVisit({ leads = [], properties = [], onBack }) {
   const [selectedDay, setSelectedDay] = useState(10)
   const [selectedTime, setSelectedTime] = useState('10:00')
-  const [selectedLead, setSelectedLead] = useState(leads[0])
-  const [selectedProperty, setSelectedProperty] = useState(properties[0])
+  const [selectedLead, setSelectedLead] = useState(leads[0] || null)
+  const [selectedProperty, setSelectedProperty] = useState(properties[0] || null)
   const [type, setType] = useState('Visita')
   const [notes, setNotes] = useState('')
   const [sendReminder, setSendReminder] = useState(true)
@@ -40,7 +27,7 @@ export default function ScreenScheduleVisit({ onBack }) {
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>Visita agendada!</div>
           <div style={{ fontSize: 14, color: '#64748b', lineHeight: 1.6, marginBottom: 8 }}>
-            <strong>{selectedLead.name}</strong> foi notificado via WhatsApp.
+            <strong>{selectedLead?.name || 'Lead'}</strong> foi notificado via WhatsApp.
             <br />
             <span style={{ fontFamily: "'DM Mono', monospace", color: '#1a56db' }}>
               {selectedDay}/03 · {selectedTime}
@@ -192,7 +179,7 @@ export default function ScreenScheduleVisit({ onBack }) {
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>Lead</div>
             {leads.map((l) => (
-              <div key={l.id} onClick={() => setSelectedLead(l)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, border: `2px solid ${selectedLead.id === l.id ? '#1a56db' : '#f1f5f9'}`, background: selectedLead.id === l.id ? '#eff6ff' : '#fff', cursor: 'pointer', marginBottom: 6 }}>
+              <div key={l.id} onClick={() => setSelectedLead(l)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, border: `2px solid ${selectedLead?.id === l.id ? '#1a56db' : '#f1f5f9'}`, background: selectedLead?.id === l.id ? '#eff6ff' : '#fff', cursor: 'pointer', marginBottom: 6 }}>
                 <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${l.color}20`, border: `2px solid ${l.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: l.color }}>{l.avatar}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{l.name}</div>
@@ -205,7 +192,7 @@ export default function ScreenScheduleVisit({ onBack }) {
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>Imóvel</div>
             {properties.map((p) => (
-              <div key={p.id} onClick={() => setSelectedProperty(p)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, border: `2px solid ${selectedProperty.id === p.id ? '#1a56db' : '#f1f5f9'}`, background: selectedProperty.id === p.id ? '#eff6ff' : '#fff', cursor: 'pointer', marginBottom: 6 }}>
+              <div key={p.id} onClick={() => setSelectedProperty(p)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, border: `2px solid ${selectedProperty?.id === p.id ? '#1a56db' : '#f1f5f9'}`, background: selectedProperty?.id === p.id ? '#eff6ff' : '#fff', cursor: 'pointer', marginBottom: 6 }}>
                 <img src={p.img} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{p.title}</div>
@@ -218,8 +205,8 @@ export default function ScreenScheduleVisit({ onBack }) {
           <div style={{ background: '#0f172a', borderRadius: 16, padding: '20px' }}>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#f8fafc', marginBottom: 14 }}>Resumo do Agendamento</div>
             {[
-              { icon: icons.user, label: 'Lead', value: selectedLead.name },
-              { icon: icons.home, label: 'Imóvel', value: selectedProperty.title },
+              { icon: icons.user, label: 'Lead', value: selectedLead?.name || '-' },
+              { icon: icons.home, label: 'Imóvel', value: selectedProperty?.title || '-' },
               { icon: icons.calendar, label: 'Data', value: `${selectedDay}/03/2026` },
               { icon: icons.clock, label: 'Horário', value: selectedTime },
               { icon: icons.note, label: 'Tipo', value: type },

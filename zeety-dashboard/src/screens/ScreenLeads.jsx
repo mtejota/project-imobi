@@ -3,16 +3,15 @@ import Avatar from '../components/Avatar'
 import ScoreBadge from '../components/ScoreBadge'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
-import { leads } from '../data'
 
-export default function ScreenLeads({ onOpenLeadProfile, onOpenNewLead }) {
+export default function ScreenLeads({ leads = [], onOpenLeadProfile, onOpenNewLead }) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('Todos')
 
   const filtered = leads.filter(
     (l) =>
       (filter === 'Todos' || l.tag === filter) &&
-      (l.name.toLowerCase().includes(search.toLowerCase()) || l.region.toLowerCase().includes(search.toLowerCase()))
+      (String(l.name || '').toLowerCase().includes(search.toLowerCase()) || String(l.region || '').toLowerCase().includes(search.toLowerCase()))
   )
 
   return (
@@ -20,7 +19,9 @@ export default function ScreenLeads({ onOpenLeadProfile, onOpenNewLead }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Leads</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>{leads.length} contatos · 3 quentes hoje</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>
+            {leads.length} contatos · {leads.filter((lead) => Number(lead.score || 0) >= 80).length} quentes hoje
+          </div>
         </div>
         <button onClick={onOpenNewLead} style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon d={icons.plus} size={14} stroke="#fff" /> Novo Lead

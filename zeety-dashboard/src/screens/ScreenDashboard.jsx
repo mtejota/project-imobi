@@ -4,24 +4,23 @@ import ScoreBadge from '../components/ScoreBadge'
 import StatCard from '../components/StatCard'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
-import { appointments, leads } from '../data'
 
-export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName = 'Usuário', alerts = [], onDismissAlert, onClearAlerts }) {
+export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName = 'Usuário', alerts = [], onDismissAlert, onClearAlerts, leads = [], appointments = [] }) {
   const [time, setTime] = useState(new Date())
   const [showCharts, setShowCharts] = useState(false)
   const [ready, setReady] = useState(false)
 
-  const hotLeads = useAnimatedNumber(3, 900)
+  const hotLeads = useAnimatedNumber(leads.filter((lead) => Number(lead.score || 0) >= 80).length, 900)
   const alertsCount = alerts.length
-  const leadsToday = useAnimatedNumber(14, 1000)
-  const visitsToday = useAnimatedNumber(4, 1000)
-  const activeNegotiations = useAnimatedNumber(9, 1000)
-  const monthlyClosedMillions = useAnimatedNumber(3.2, 1100)
-  const leadsCaptured = useAnimatedNumber(47, 1100)
-  const qualified = useAnimatedNumber(29, 1100)
-  const visitsMade = useAnimatedNumber(18, 1100)
-  const proposals = useAnimatedNumber(8, 1100)
-  const closings = useAnimatedNumber(3, 1100)
+  const leadsToday = useAnimatedNumber(leads.length, 1000)
+  const visitsToday = useAnimatedNumber(appointments.length, 1000)
+  const activeNegotiations = useAnimatedNumber(leads.filter((lead) => ['PROPOSAL', 'NEGOTIATION', 'CLOSING'].includes(String(lead.stage || '').toUpperCase())).length, 1000)
+  const monthlyClosedMillions = useAnimatedNumber(0, 1100)
+  const leadsCaptured = useAnimatedNumber(leads.length, 1100)
+  const qualified = useAnimatedNumber(leads.filter((lead) => Number(lead.score || 0) >= 70).length, 1100)
+  const visitsMade = useAnimatedNumber(appointments.filter((a) => String(a.status || '').toLowerCase().includes('confirm')).length, 1100)
+  const proposals = useAnimatedNumber(leads.filter((lead) => String(lead.stage || '').toUpperCase() === 'PROPOSAL').length, 1100)
+  const closings = useAnimatedNumber(leads.filter((lead) => String(lead.stage || '').toUpperCase() === 'CLOSING').length, 1100)
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000)
@@ -78,7 +77,7 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
       }))
 
     const proposalFollowUps = leads
-      .filter((lead) => lead.tag !== 'Quente')
+      .filter((lead) => Number(lead.score || 0) < 80)
       .slice(0, 3)
       .map((lead, index) => ({
         id: `proposal-${lead.id}`,
@@ -188,13 +187,13 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
                     e.currentTarget.style.background = 'transparent'
                   }}
                 >
-                  <Avatar initials={l.avatar} color={l.color} size={38} />
+                  <Avatar initials={l.avatar || String(l.name || 'L').slice(0, 2).toUpperCase()} color={l.color || '#3b82f6'} size={38} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{l.name}</div>
-                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{l.type} · {l.region} · {l.budget}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{l.name || 'Lead'}</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{l.type || '-'} · {l.region || '-'} · {l.budget || '-'}</div>
                   </div>
                   <ScoreBadge score={l.score} />
-                  <div style={{ fontSize: 11, color: '#cbd5e1', minWidth: 48, textAlign: 'right' }}>{l.time}</div>
+                  <div style={{ fontSize: 11, color: '#cbd5e1', minWidth: 48, textAlign: 'right' }}>{l.time || '-'}</div>
                 </div>
               ))}
             </div>
@@ -208,14 +207,14 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
             <div style={{ padding: '8px 22px 18px' }}>
               {appointments.map((a, i) => (
                 <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 0', borderBottom: i < appointments.length - 1 ? '1px solid #f8fafc' : 'none', ...inViewStyle(ready, 360 + i * 45) }}>
-                  <div style={{ width: 48, textAlign: 'center', fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: '#64748b' }}>{a.time}</div>
-                  <div style={{ width: 3, height: 36, borderRadius: 4, background: a.status === 'confirmed' ? '#10b981' : '#f59e0b', flexShrink: 0 }} />
-                  <Avatar initials={a.avatar} color={a.color} size={32} />
+                  <div style={{ width: 48, textAlign: 'center', fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: '#64748b' }}>{a.time || '-'}</div>
+                  <div style={{ width: 3, height: 36, borderRadius: 4, background: String(a.status || '').toLowerCase().includes('confirm') ? '#10b981' : '#f59e0b', flexShrink: 0 }} />
+                  <Avatar initials={a.avatar || String(a.name || 'A').slice(0, 2).toUpperCase()} color={a.color || '#3b82f6'} size={32} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{a.name}</div>
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{a.property}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{a.name || 'Compromisso'}</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{a.property || '-'}</div>
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: a.type === 'Visita' ? '#eff6ff' : '#f5f3ff', color: a.type === 'Visita' ? '#3b82f6' : '#8b5cf6' }}>{a.type}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: a.type === 'Visita' ? '#eff6ff' : '#f5f3ff', color: a.type === 'Visita' ? '#3b82f6' : '#8b5cf6' }}>{a.type || '-'}</span>
                 </div>
               ))}
             </div>

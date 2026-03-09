@@ -87,7 +87,6 @@ export default function ScreenLogin({ onLogin, onRegister }) {
           <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 24 }}>
             {isLogin ? 'Use seu e-mail e senha para acessar seu workspace.' : 'Cadastre sua conta e o ambiente do cliente será criado automaticamente.'}
           </div>
-
           {!isLogin && (
             <>
               <Field label="Nome completo">
