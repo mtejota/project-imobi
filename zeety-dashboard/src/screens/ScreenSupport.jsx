@@ -6,7 +6,7 @@ import { supportApi } from '../api'
 const CATEGORIES = ['Problema técnico', 'Erro de integração', 'Cobrança', 'Sugestão', 'Outro']
 const PRIORITIES = ['Baixa', 'Média', 'Alta']
 
-export default function ScreenSupport() {
+export default function   ScreenSupport() {
   const [category, setCategory] = useState(CATEGORIES[0])
   const [priority, setPriority] = useState(PRIORITIES[1])
   const [subject, setSubject] = useState('')
@@ -62,7 +62,7 @@ export default function ScreenSupport() {
       setTicketId(nextTicketId || `SUP-${Math.floor(10000 + Math.random() * 90000)}`)
     } finally {
       setSending(false)
-    }
+    } 
   }
 
   return (

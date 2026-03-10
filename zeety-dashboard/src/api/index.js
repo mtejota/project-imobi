@@ -1,10 +1,12 @@
-export * as authApi from './authApi'
-export * as leadsApi from './leadsApi'
-export * as propertiesApi from './propertiesApi'
-export * as pipelineApi from './pipelineApi'
-export * as appointmentsApi from './appointmentsApi'
-export * as notificationsApi from './notificationsApi'
-export * as whatsappApi from './whatsappApi'
-export * as metricsApi from './metricsApi'
-export * as reportsApi from './reportsApi'
-export * as supportApi from './supportApi'
+export {
+  appointmentsApi,
+  authApi,
+  leadsApi,
+  metricsApi,
+  notificationsApi,
+  pipelineApi,
+  propertiesApi,
+  reportsApi,
+  supportApi,
+  whatsappApi,
+} from './mockApi'
