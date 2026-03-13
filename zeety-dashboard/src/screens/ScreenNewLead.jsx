@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
@@ -107,6 +107,13 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
   const [step, setStep] = useState(0)
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 960)
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 960)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
   const tagToggle = (t) => setForm((f) => ({ ...f, tags: f.tags.includes(t) ? f.tags.filter((x) => x !== t) : [...f.tags, t] }))
@@ -122,7 +129,7 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
           </div>
           <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>Lead criado com sucesso!</div>
           <div style={{ fontSize: 14, color: '#64748b', marginBottom: 28 }}>IA já iniciou a qualificação via WhatsApp.</div>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={() => {
                 setSaved(false)
@@ -156,7 +163,7 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
           <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Novo Lead</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 36 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 36, overflowX: 'auto', paddingBottom: 8 }}>
           {STEPS.map((s, i) => (
             <div key={s} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? 1 : 0 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: i <= step ? 'pointer' : 'default' }} onClick={() => i < step && setStep(i)}>
@@ -171,16 +178,16 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
         </div>
 
         <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <div style={{ padding: '24px 32px', borderBottom: '1px solid #f8fafc', background: 'linear-gradient(135deg, #eff6ff 0%, #fff 60%)' }}>
+          <div style={{ padding: isCompact ? '20px 18px' : '24px 32px', borderBottom: '1px solid #f8fafc', background: 'linear-gradient(135deg, #eff6ff 0%, #fff 60%)' }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>{STEPS[step]}</div>
             <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>
               Passo {step + 1} de {STEPS.length}
             </div>
           </div>
 
-          <div style={{ padding: '32px' }}>
+          <div style={{ padding: isCompact ? '20px 18px' : '32px' }}>
             {step === 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '0 24px' }}>
                 <div style={{ gridColumn: '1/-1' }}>
                   <Field label="Nome completo" required>
                     <Input placeholder="Ex: João Silva" value={form.name} onChange={set('name')} icon={icons.user} />
@@ -196,7 +203,7 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
             )}
 
             {step === 1 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '0 24px' }}>
                 <Field label="Tipo de imóvel" required>
                   <Select
                     value={form.type}
@@ -244,7 +251,7 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
             )}
 
             {step === 2 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '0 24px' }}>
                 <Field label="Canal de origem" required>
                   <Select
                     value={form.source}
@@ -292,7 +299,7 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
             )}
 
             {step === 3 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 16 }}>
                 {[
                   { label: 'Nome', value: form.name || '—', icon: icons.user },
                   { label: 'Telefone', value: form.phone || '—', icon: icons.phone },
@@ -315,7 +322,7 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
             )}
           </div>
 
-          <div style={{ padding: '20px 32px', borderTop: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
+          <div style={{ padding: isCompact ? '14px 18px' : '20px 32px', borderTop: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa', gap: 10 }}>
             <button onClick={() => step > 0 && setStep(step - 1)} style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid #e2e8f0', background: '#fff', fontSize: 13, fontWeight: 700, color: step === 0 ? '#e2e8f0' : '#64748b', cursor: step === 0 ? 'default' : 'pointer', fontFamily: 'inherit' }}>
               ← Voltar
             </button>

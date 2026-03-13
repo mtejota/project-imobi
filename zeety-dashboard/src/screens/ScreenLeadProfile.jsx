@@ -69,7 +69,7 @@ export default function ScreenLeadProfile({ onBack, leadData, onOpenEdit, onSend
             <Icon d={icons.edit} size={13} /> Editar
           </button>
           <button onClick={onSendMessage} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#1a56db', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Icon d={icons.whatsapp} size={13} /> Mensagem
+            <Icon d={icons.support} size={13} /> Contato
           </button>
         </div>
       </div>

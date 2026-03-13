@@ -59,14 +59,13 @@ const PERIOD_CONFIG = {
 export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
   const [view, setView] = useState('Semana')
   const [selectedDay, setSelectedDay] = useState(7)
-  const [smartAgenda, setSmartAgenda] = useState(true)
-  const [travelReminders, setTravelReminders] = useState(true)
   const [animate, setAnimate] = useState(true)
   const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
 
   const config = PERIOD_CONFIG[view]
   const selectedWeekDayIndex = (selectedDay - 1) % 7
+  const selectedWeekDayLabel = days[selectedWeekDayIndex]
 
   const dayTemplates = useMemo(
     () => ({
@@ -106,7 +105,6 @@ export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
         day: selectedDay,
         probability,
         travelMinutes,
-        reminderLead: Math.max(10, travelMinutes - 5),
         property: appointments[index % appointments.length]?.property || 'Imóvel não informado',
       }
     })
@@ -119,22 +117,17 @@ export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
     }
 
     const items = [...selectedDayEvents]
-    if (!smartAgenda) return items.sort((a, b) => toMinutes(a.time) - toMinutes(b.time))
-
-    return items.sort((a, b) => {
-      if (b.probability !== a.probability) return b.probability - a.probability
-      return toMinutes(a.time) - toMinutes(b.time)
-    })
-  }, [selectedDayEvents, smartAgenda])
+    return items.sort((a, b) => toMinutes(a.time) - toMinutes(b.time))
+  }, [selectedDayEvents])
 
   const scheduleByHour = useMemo(() => {
     const map = {}
     prioritizedEvents.forEach((event) => {
       if (!map[event.time]) map[event.time] = []
-      map[event.time].push({ ...event, dayIndex: selectedWeekDayIndex })
+      map[event.time].push({ ...event })
     })
     return map
-  }, [prioritizedEvents, selectedWeekDayIndex])
+  }, [prioritizedEvents])
 
   const periodStats = useMemo(() => {
     const total = prioritizedEvents.length
@@ -146,22 +139,6 @@ export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
       { label: 'Reuniões', value: reunioes, color: '#8b5cf6' },
     ]
   }, [prioritizedEvents])
-
-  const travelAlerts = useMemo(() => {
-    if (!travelReminders) return []
-    return prioritizedEvents
-      .filter((event) => event.type === 'Visita')
-      .slice(0, 3)
-      .map((event) => ({
-        ...event,
-        alertText: `Saia ${event.reminderLead} min antes (${event.travelMinutes} min de deslocamento).`,
-      }))
-  }, [prioritizedEvents, travelReminders])
-
-  const animatedBars = useMemo(() => {
-    const base = view === 'Dia' ? 16 : view === 'Semana' ? 24 : 30
-    return [0, 1, 2, 3, 4, 5, 6].map((i) => Math.min(92, base + ((selectedDay + i * 3) % 12) * 4))
-  }, [view, selectedDay])
 
   useEffect(() => {
     setAnimate(false)
@@ -178,7 +155,7 @@ export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Agenda</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>Agenda</div>
           <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>{config.subtitle} · {selectedDay}/03</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
@@ -206,12 +183,6 @@ export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
             )
           })}
           <button onClick={onOpenSchedule} style={{ background: '#1a56db', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>+ Agendar</button>
-          <button onClick={() => setSmartAgenda((value) => !value)} style={{ border: `1px solid ${smartAgenda ? '#86efac' : '#e2e8f0'}`, background: smartAgenda ? '#f0fdf4' : '#fff', color: smartAgenda ? '#15803d' : '#64748b', borderRadius: 10, padding: '8px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-            Agenda inteligente {smartAgenda ? 'ON' : 'OFF'}
-          </button>
-          <button onClick={() => setTravelReminders((value) => !value)} style={{ border: `1px solid ${travelReminders ? '#bfdbfe' : '#e2e8f0'}`, background: travelReminders ? '#eff6ff' : '#fff', color: travelReminders ? '#1d4ed8' : '#64748b', borderRadius: 10, padding: '8px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-            Lembrete deslocamento {travelReminders ? 'ON' : 'OFF'}
-          </button>
         </div>
       </div>
 
@@ -257,9 +228,6 @@ export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{a.time} · {a.name}</div>
                     <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{a.property} · prob. {a.probability}% · dia {selectedDay}/03</div>
-                    {travelReminders && a.type === 'Visita' && (
-                      <div style={{ fontSize: 10, color: '#1d4ed8', marginTop: 2 }}>Lembrete: sair {a.reminderLead} min antes</div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -283,54 +251,32 @@ export default function ScreenCalendar({ appointments = [], onOpenSchedule }) {
               ))}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 56 }}>
-              {animatedBars.map((bar, index) => (
-                <div key={index} style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                  <div style={{ width: '100%', height: animate ? `${bar}%` : '8%', background: 'linear-gradient(180deg, #3b82f6, #1a56db)', borderRadius: '6px 6px 3px 3px', transition: `height 0.45s ease ${index * 35}ms` }} />
-                </div>
-              ))}
-            </div>
-
-            <div style={{ marginTop: 12, borderTop: '1px solid #f1f5f9', paddingTop: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>Lembretes de deslocamento</div>
-              {travelAlerts.length === 0 && <div style={{ fontSize: 10, color: '#94a3b8' }}>Lembretes desativados.</div>}
-              {travelAlerts.map((alert) => (
-                <div key={`${alert.time}-${alert.name}`} style={{ fontSize: 10, color: '#1d4ed8', marginBottom: 4 }}>
-                  {alert.time} · {alert.name}: {alert.alertText}
-                </div>
-              ))}
-            </div>
           </div>
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', borderBottom: '1px solid #f1f5f9' }}>
-              <div />
-              {days.map((d, i) => (
-                <div key={d} style={{ padding: '12px 8px', textAlign: 'center', borderLeft: '1px solid #f8fafc' }}>
-                  <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600 }}>{d}</div>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', margin: '4px auto 0', background: i === 6 ? '#1a56db' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: i === 6 ? 800 : 600, color: i === 6 ? '#fff' : '#0f172a' }}>
-                    {i + 1}
-                  </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '84px 1fr', borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}>
+              <div style={{ padding: '12px 10px', fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Hora</div>
+              <div style={{ padding: '12px 14px', borderLeft: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>
+                  {selectedWeekDayLabel}, {String(selectedDay).padStart(2, '0')}/03
                 </div>
-              ))}
+                <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>Agendamentos do dia selecionado</div>
+              </div>
             </div>
             <div style={{ overflowY: 'auto', maxHeight: 420 }}>
               {hours.map((h) => (
-                <div key={h} style={{ display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', borderBottom: '1px solid #f8fafc' }}>
-                  <div style={{ padding: '8px 10px', fontSize: 10, color: '#94a3b8', fontFamily: "'DM Mono', monospace" }}>{h}</div>
-                  {[...Array(7)].map((_, dayIndex) => {
-                    const items = (scheduleByHour[h] || []).filter((item) => item.dayIndex === dayIndex)
-                    return (
-                      <div key={dayIndex} style={{ minHeight: 40, borderLeft: '1px solid #f8fafc', padding: 3 }}>
-                        {items.map((item, idx) => (
-                          <div key={`${item.name}-${idx}`} style={{ background: `${item.color}18`, borderLeft: `3px solid ${item.color}`, borderRadius: 6, padding: '4px 8px', height: '100%', marginBottom: 3 }}>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: item.color }}>{item.name}</div>
-                            <div style={{ fontSize: 9, color: '#94a3b8' }}>{item.type}</div>
-                          </div>
-                        ))}
+                <div key={h} style={{ display: 'grid', gridTemplateColumns: '84px 1fr', borderBottom: '1px solid #f8fafc' }}>
+                  <div style={{ padding: '9px 10px', fontSize: 10, color: '#94a3b8', fontFamily: "'DM Mono', monospace" }}>{h}</div>
+                  <div style={{ minHeight: 44, borderLeft: '1px solid #f8fafc', padding: 5 }}>
+                    {(scheduleByHour[h] || []).map((item, idx) => (
+                      <div key={`${item.name}-${idx}`} style={{ background: `${item.color}18`, borderLeft: `3px solid ${item.color}`, borderRadius: 8, padding: '6px 10px', marginBottom: 4, maxWidth: 360 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: item.color }}>{item.name}</div>
+                        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>
+                          {item.type} · {item.property}
+                        </div>
                       </div>
-                    )
-                  })}
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

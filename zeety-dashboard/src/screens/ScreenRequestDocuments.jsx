@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
@@ -40,6 +40,13 @@ export default function ScreenRequestDocuments({ onBack }) {
   const [sending, setSending] = useState(false)
   const [sentMsg, setSentMsg] = useState(false)
   const [msgText, setMsgText] = useState('Olá! Para prosseguirmos com sua proposta, precisamos dos seguintes documentos. Por favor, envie por aqui no WhatsApp.')
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1200)
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1200)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const updateStatus = (id, status) => setDocs((ds) => ds.map((d) => (d.id === id ? { ...d, status } : d)))
   const removeDoc = (id) => setDocs((ds) => ds.filter((d) => d.id !== id))
@@ -70,7 +77,7 @@ export default function ScreenRequestDocuments({ onBack }) {
         </div>
       )}
 
-      <div style={{ maxWidth: 1140, margin: '0 auto', padding: '24px 24px 32px', display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto', padding: '24px 24px 32px', display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 340px', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
@@ -82,7 +89,7 @@ export default function ScreenRequestDocuments({ onBack }) {
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '20px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 14 }}>Lead / Negociação</div>
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
               {LEADS.map((l) => (
                 <button key={l.id} onClick={() => setSelectedLead(l)} style={{ flex: 1, padding: '12px 14px', borderRadius: 12, border: `2px solid ${selectedLead.id === l.id ? l.color : '#f1f5f9'}`, background: selectedLead.id === l.id ? `${l.color}10` : '#fff', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${l.color}20`, border: `2px solid ${l.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: l.color, flexShrink: 0 }}>{l.avatar}</div>
@@ -117,9 +124,9 @@ export default function ScreenRequestDocuments({ onBack }) {
             {activeTab === 'checklist' && (
               <div>
                 <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 12 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1.2fr 1fr 100px', padding: '10px 20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '2fr 1fr' : '2.5fr 1.2fr 1fr 100px', padding: '10px 20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
                     {['Documento', 'Status', 'Lembretes', 'Ações'].map((h) => (
-                      <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', display: isCompact && (h === 'Lembretes' || h === 'Ações') ? 'none' : 'block' }}>
                         {h}
                       </span>
                     ))}
@@ -127,7 +134,7 @@ export default function ScreenRequestDocuments({ onBack }) {
                   {docs.map((doc, i) => {
                     const cfg = STATUS_CONFIG[doc.status]
                     return (
-                      <div key={doc.id} style={{ display: 'grid', gridTemplateColumns: '2.5fr 1.2fr 1fr 100px', padding: '14px 20px', alignItems: 'center', borderBottom: i < docs.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+                      <div key={doc.id} style={{ display: 'grid', gridTemplateColumns: isCompact ? '2fr 1fr' : '2.5fr 1.2fr 1fr 100px', padding: '14px 20px', alignItems: 'center', borderBottom: i < docs.length - 1 ? '1px solid #f8fafc' : 'none', gap: isCompact ? 10 : 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <div style={{ width: 34, height: 34, borderRadius: 10, background: `${cfg.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <Icon d={icons.file} size={15} stroke={cfg.color} />
@@ -146,8 +153,8 @@ export default function ScreenRequestDocuments({ onBack }) {
                             ))}
                           </select>
                         </div>
-                        <div style={{ fontSize: 11, color: '#94a3b8' }}>{doc.reminder > 0 ? `${doc.reminder}x enviado` : '-'}</div>
-                        <div style={{ display: 'flex', gap: 6 }}>
+                        <div style={{ fontSize: 11, color: '#94a3b8', display: isCompact ? 'none' : 'block' }}>{doc.reminder > 0 ? `${doc.reminder}x enviado` : '-'}</div>
+                        <div style={{ display: isCompact ? 'none' : 'flex', gap: 6 }}>
                           <button title="Lembrete WhatsApp" style={{ width: 28, height: 28, borderRadius: 8, background: '#f0fdf4', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Icon d={icons.bell} size={12} stroke="#10b981" />
                           </button>

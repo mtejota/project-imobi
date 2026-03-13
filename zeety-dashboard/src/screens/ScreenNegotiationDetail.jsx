@@ -38,6 +38,7 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
   const [showNovaProposta, setShowNovaProposta] = useState(false)
   const [novaValor, setNovaValor] = useState('750000')
   const [novaObs, setNovaObs] = useState('')
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1200)
   const stageIdx = STAGES.indexOf(currentStage)
   const [pipelineProgress, setPipelineProgress] = useState(0)
   const targetProgress = Math.max(0, ((stageIdx + 1) / STAGES.length) * 100)
@@ -46,6 +47,12 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
     const t = requestAnimationFrame(() => setPipelineProgress(targetProgress))
     return () => cancelAnimationFrame(t)
   }, [targetProgress])
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1200)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#f8fafc' }}>
@@ -87,7 +94,7 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
         </div>
       )}
 
-      <div style={{ padding: '20px 32px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ padding: isCompact ? '16px 18px' : '20px 32px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
           <Icon d={icons.back} size={15} /> Pipeline
         </button>
@@ -95,7 +102,7 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
         <span style={{ fontSize: 13, color: '#94a3b8' }}>{base.id}</span>
         <span style={{ color: '#e2e8f0' }}>›</span>
         <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{base.lead.name}</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+        <div style={{ marginLeft: isCompact ? 0 : 'auto', display: 'flex', gap: 8, width: isCompact ? '100%' : 'auto' }}>
           <button style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 700, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit' }}>
             <Icon d={icons.whatsapp} size={13} stroke="#10b981" /> Contatar lead
           </button>
@@ -105,10 +112,10 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', overflow: 'hidden' }}>
-        <div style={{ padding: '0 32px 28px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 340px', overflow: 'hidden' }}>
+        <div style={{ padding: isCompact ? '0 18px 20px' : '0 32px 28px' }}>
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: 24, marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-            <div style={{ display: 'flex', gap: 20 }}>
+            <div style={{ display: 'flex', gap: 20, flexDirection: isCompact ? 'column' : 'row' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: `${base.lead.color}20`, border: `3px solid ${base.lead.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, color: base.lead.color }}>{base.lead.avatar}</div>
                 <div>
@@ -116,7 +123,17 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
                   <div style={{ fontSize: 12, color: '#94a3b8' }}>{base.lead.phone}</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1.5, padding: '0 20px', borderLeft: '1px solid #f1f5f9', borderRight: '1px solid #f1f5f9' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  flex: 1.5,
+                  padding: isCompact ? 0 : '0 20px',
+                  borderLeft: isCompact ? 'none' : '1px solid #f1f5f9',
+                  borderRight: isCompact ? 'none' : '1px solid #f1f5f9',
+                }}
+              >
                 <img src={base.property.img} alt="" style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>{base.property.title}</div>
@@ -124,7 +141,7 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
                   <div style={{ fontSize: 15, fontWeight: 800, color: '#1a56db', fontFamily: "'DM Mono', monospace", marginTop: 4 }}>{base.property.price}</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center', paddingLeft: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center', paddingLeft: isCompact ? 0 : 20 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Comissão estimada</div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: '#10b981', fontFamily: "'DM Mono', monospace" }}>{base.commission}</div>
                 <div style={{ fontSize: 11, color: '#94a3b8' }}>{base.commissionPct} sobre {base.property.price}</div>
@@ -160,7 +177,7 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f1f5f9', marginBottom: 24 }}>
+          <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f1f5f9', marginBottom: 24, overflowX: 'auto' }}>
             {[
               { id: 'propostas', label: 'Propostas' },
               { id: 'timeline', label: 'Histórico' },
@@ -240,7 +257,17 @@ export default function ScreenNegotiationDetail({ negotiation, onBack }) {
           )}
         </div>
 
-        <div style={{ background: '#fff', borderLeft: '1px solid #f1f5f9', padding: '28px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div
+          style={{
+            background: '#fff',
+            borderLeft: isCompact ? 'none' : '1px solid #f1f5f9',
+            borderTop: isCompact ? '1px solid #f1f5f9' : 'none',
+            padding: isCompact ? '20px 18px 24px' : '28px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
+          }}
+        >
           <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', borderRadius: 16, padding: 18 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <Icon d={icons.zap} size={14} stroke="#22c55e" />

@@ -20,6 +20,7 @@ export default function ScreenGenerateReport({ onBack }) {
   const [generated, setGenerated] = useState(false)
   const [exportingPdf, setExportingPdf] = useState(false)
   const [exportError, setExportError] = useState('')
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1024)
   const [data, setData] = useState({ kpis: [], funnel: [], sources: [], brokers: [] })
 
   const selectedSections = useMemo(() => sections.filter((s) => s.checked).map((s) => s.id), [sections])
@@ -58,6 +59,12 @@ export default function ScreenGenerateReport({ onBack }) {
     }
   }, [period])
 
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1024)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const toggleSection = (id) => setSections((s) => s.map((x) => (x.id === id ? { ...x, checked: !x.checked } : x)))
 
   const handleGenerate = () => {
@@ -86,7 +93,7 @@ export default function ScreenGenerateReport({ onBack }) {
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#f8fafc' }}>
-      <div style={{ maxWidth: 1160, margin: '0 auto', padding: '24px 24px 32px', display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
+      <div style={{ maxWidth: 1160, margin: '0 auto', padding: '24px 24px 32px', display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 320px', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
@@ -101,13 +108,20 @@ export default function ScreenGenerateReport({ onBack }) {
               <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>KPIs — {period}</div>
               <span style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, background: '#eff6ff', color: '#1d4ed8', fontWeight: 700, border: '1px solid #bfdbfe' }}>{loading ? 'Carregando...' : 'Dados atualizados'}</span>
             </div>
-            <div style={{ display: 'flex', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))', gap: 14 }}>
               {data.kpis.map((kpi) => (
                 <div key={kpi.label} style={{ flex: 1, background: '#f8fafc', borderRadius: 14, padding: '16px 14px', border: '1px solid #e2e8f0' }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: '#1a56db' }}>{formatValue(kpi.value)}</div>
                   <div style={{ fontSize: 10, color: '#374151', marginTop: 6, fontWeight: 600 }}>{kpi.label}</div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '20px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 14 }}>
+              <MiniSection title='Resumo do funil' value={`${data.funnel.length || 0} etapas`} helper='Atualizado conforme período' />
+              <MiniSection title='Fontes mapeadas' value={`${data.sources.length || 0} canais`} helper='Ranking de captação' />
             </div>
           </div>
         </div>
@@ -170,4 +184,14 @@ function formatValue(value) {
     return String(n)
   }
   return String(value || 0)
+}
+
+function MiniSection({ title, value, helper }) {
+  return (
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: 14, background: '#f8fafc' }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', marginTop: 6 }}>{value}</div>
+      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{helper}</div>
+    </div>
+  )
 }

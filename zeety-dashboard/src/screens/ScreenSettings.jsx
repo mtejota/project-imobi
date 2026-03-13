@@ -20,6 +20,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
   const [pairing, setPairing] = useState(false)
   const [evolutionInstance, setEvolutionInstance] = useState('')
   const [qrCodeValue, setQrCodeValue] = useState('')
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1024)
   const fileInputRef = useRef(null)
   const previousPhotoRef = useRef('')
 
@@ -61,6 +62,12 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
     return () => {
       mounted = false
     }
+  }, [])
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1024)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   const handlePhotoChange = (event) => {
@@ -126,7 +133,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
           <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Preferências da conta, alertas e integrações</div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 300px', gap: 16, marginBottom: 16 }}>
           <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f1f5f9' }}>
             {tabs.map((item) => (
               <button
@@ -150,7 +157,19 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
             ))}
           </div>
 
-          <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 14, padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            style={{
+              background: '#fff',
+              border: '1px solid #f1f5f9',
+              borderRadius: 14,
+              padding: '10px 12px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: isCompact ? 'wrap' : 'nowrap',
+            }}
+          >
             {summaryItems.map((item) => (
               <div key={item.label} style={{ textAlign: 'center', flex: 1 }}>
                 <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>{item.label}</div>
@@ -162,7 +181,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
 
         <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 16, padding: 22, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
           {tab === 'general' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '280px 1fr', gap: 18 }}>
               <div style={{ border: '1px solid #f1f5f9', borderRadius: 14, padding: 16, background: '#f8fafc' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Perfil do usuário</div>
 
@@ -186,7 +205,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 14 }}>
                 <Field label="Nome do usuário">
                   <Input
                     value={userName}
@@ -214,7 +233,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isCompact ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 8 }}>
                     {[
                       { label: 'Conversas ativas', value: '06', color: '#1a56db' },
                       { label: 'Leads no mês', value: '47', color: '#8b5cf6' },
@@ -250,7 +269,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
           )}
 
           {tab === 'integrations' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 12 }}>
               <IntegrationCard
                 title="WhatsApp via QR Code"
                 subtitle="Conexão direta com criação de instância Evolution"
