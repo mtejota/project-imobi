@@ -4,34 +4,40 @@ import { icons } from '../constants/icons'
 
 const defaultLead = {
   id: 1,
-  name: 'Lead selecionado',
-  phone: 'Telefone não informado',
-  email: 'email@cliente.com',
-  avatar: 'LS',
-  color: '#1a56db',
-  score: 0,
-  tag: 'Em análise',
-  source: 'Canal não informado',
-  budget: 'R$ 0',
-  type: 'Tipo não informado',
-  region: 'Região não informada',
-  created: '--',
-  lastContact: '--',
-  stage: 'Prospecção',
+  name: 'João Ferreira',
+  phone: '(11) 98765-4321',
+  email: 'joao.ferreira@email.com',
+  avatar: 'JF',
+  color: '#ef4444',
+  score: 92,
+  tag: 'Quente',
+  source: 'WhatsApp',
+  budget: 'R$ 750.000',
+  type: 'Apartamento 2 Quartos',
+  region: 'Pinheiros, São Paulo',
+  created: '02/03/2026',
+  lastContact: 'há 5 min',
+  stage: 'Negociação',
   notes:
-    'As informações completas deste lead serão exibidas aqui assim que o backend retornar o histórico e os campos detalhados.',
-  tags: ['Aguardando integração'],
-  broker: { name: 'Responsável não definido', avatar: 'RD' },
+    'Cliente muito interessado no apartamento de Pinheiros. Tem aprovação de crédito no banco. Quer fechar até o final do mês. Preferência por andar alto e varanda.',
+  tags: ['Comprador', 'Crédito aprovado', 'Urgente'],
+  broker: { name: 'Lucas Correia', avatar: 'LC' },
 }
 
 const timeline = [
-  { type: 'created', text: 'O histórico detalhado do lead será exibido aqui quando a integração estiver conectada.', time: 'Aguardando dados', icon: 'plus', color: '#64748b', bg: '#f8fafc' },
+  { type: 'whatsapp', text: "Lead enviou mensagem: 'Posso ver o apartamento amanhã às 10h?'", time: 'há 5 min', icon: 'whatsapp', color: '#10b981', bg: '#f0fdf4' },
+  { type: 'ai', text: 'IA qualificou lead — Score atualizado para 92 (era 85)', time: 'há 5 min', icon: 'zap', color: '#f59e0b', bg: '#fffbeb' },
+  { type: 'visit', text: 'Visita agendada para 08/03 às 10h — Ap. 2Q Pinheiros 450m²', time: 'há 10 min', icon: 'calendar', color: '#3b82f6', bg: '#eff6ff' },
+  { type: 'doc', text: 'Documentos solicitados: RG, CPF, Comprovante de Renda', time: 'ontem 15:30', icon: 'file', color: '#8b5cf6', bg: '#f5f3ff' },
+  { type: 'whatsapp', text: "Lead enviou: 'Estou muito interessado, qual o valor exato?'", time: 'ontem 14:22', icon: 'whatsapp', color: '#10b981', bg: '#f0fdf4' },
+  { type: 'ai', text: 'IA enviou follow-up automático (Estágio 1)', time: 'ontem 09:00', icon: 'zap', color: '#f59e0b', bg: '#fffbeb' },
+  { type: 'created', text: 'Lead criado via WhatsApp — primeira mensagem recebida', time: '02/03/2026 10:15', icon: 'plus', color: '#64748b', bg: '#f8fafc' },
 ]
 
 const matchedProperties = [
-  { id: 1, title: 'Imóvel compatível 01', price: 'R$ 0', area: '--', score: 0, img: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300&q=80' },
-  { id: 2, title: 'Imóvel compatível 02', price: 'R$ 0', area: '--', score: 0, img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=300&q=80' },
-  { id: 3, title: 'Imóvel compatível 03', price: 'R$ 0', area: '--', score: 0, img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=300&q=80' },
+  { id: 1, title: 'Ap. 2Q — Pinheiros', price: 'R$ 750.000', area: '78m²', score: 98, img: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300&q=80' },
+  { id: 2, title: 'Ap. 2Q — Vila Madalena', price: 'R$ 680.000', area: '72m²', score: 87, img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=300&q=80' },
+  { id: 3, title: 'Ap. 3Q — Perdizes', price: 'R$ 790.000', area: '94m²', score: 74, img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=300&q=80' },
 ]
 
 const stageColors = { Prospecção: '#64748b', Visita: '#3b82f6', Proposta: '#f59e0b', Negociação: '#f97316', Fechamento: '#10b981' }
@@ -63,7 +69,7 @@ export default function ScreenLeadProfile({ onBack, leadData, onOpenEdit, onSend
             <Icon d={icons.edit} size={13} /> Editar
           </button>
           <button onClick={onSendMessage} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#1a56db', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Icon d={icons.whatsapp} size={13} /> Mensagem
+            <Icon d={icons.support} size={13} /> Contato
           </button>
         </div>
       </div>

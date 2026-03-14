@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
@@ -35,8 +35,15 @@ export default function ScreenPropertyEdit({ property, onBack, onOpenDetail }) {
     description: 'Imóvel bem localizado, com excelente liquidez e boa procura para visitação.',
   })
   const [saving, setSaving] = useState(false)
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1040)
 
   const setField = (key) => (e) => setForm((s) => ({ ...s, [key]: e.target.value }))
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1040)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const handleSave = () => {
     setSaving(true)
@@ -54,9 +61,9 @@ export default function ScreenPropertyEdit({ property, onBack, onOpenDetail }) {
           <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Editar Imóvel</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 18 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 320px', gap: 18 }}>
           <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', padding: 22 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 14 }}>
               <Field label="Título"><Input value={form.title} onChange={setField('title')} /></Field>
               <Field label="Tipo"><Select value={form.type} options={TYPE_OPTIONS} onChange={setField('type')} /></Field>
               <Field label="Preço"><Input value={form.price} onChange={setField('price')} /></Field>

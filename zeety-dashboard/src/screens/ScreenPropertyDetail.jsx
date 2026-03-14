@@ -4,26 +4,26 @@ import { icons } from '../constants/icons'
 
 const detailFallback = {
   id: 1,
-  title: 'Imóvel selecionado',
-  address: 'Endereço será exibido após o carregamento da integração',
-  price: 'R$ 0',
-  condo: '--',
-  iptu: '--',
-  area: '--',
-  privateArea: '--',
-  beds: 0,
-  baths: 0,
-  parking: 0,
-  floor: '--',
-  status: 'Em análise',
-  code: 'IMV-0000',
-  type: 'Não informado',
-  age: '--',
-  sun: '--',
-  furnishing: '--',
-  features: ['Informações do imóvel aguardando integração'],
+  title: 'Apartamento 2 Quartos — Pinheiros',
+  address: 'Rua dos Pinheiros, 1247, apto 82 — Pinheiros, São Paulo/SP',
+  price: 'R$ 750.000',
+  condo: 'R$ 1.200/mês',
+  iptu: 'R$ 320/ano',
+  area: '78 m²',
+  privateArea: '65 m²',
+  beds: 2,
+  baths: 2,
+  parking: 1,
+  floor: 8,
+  status: 'Disponível',
+  code: 'ZTY-0847',
+  type: 'Apartamento',
+  age: '5 anos',
+  sun: 'Manhã',
+  furnishing: 'Semi-mobiliado',
+  features: ['Varanda gourmet', 'Sacada', 'Academia', 'Piscina', 'Portaria 24h', 'Pet friendly', 'Salão de festas', 'Playground'],
   description:
-    'Os detalhes completos deste imóvel serão exibidos aqui quando o backend retornar os dados da unidade selecionada.',
+    'Lindo apartamento em Pinheiros com excelente localização. Varanda gourmet integrada à sala, cozinha americana, dois quartos bem dimensionados sendo uma suíte completa. Prédio com infraestrutura completa de lazer.',
   imgs: [
     'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=900&q=80',
     'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=900&q=80',
@@ -33,14 +33,14 @@ const detailFallback = {
 }
 
 const matchedLeads = [
-  { name: 'Lead compatível 01', avatar: 'L1', color: '#ef4444', budget: 'R$ 0', score: 0, tag: 'Aguardando match' },
-  { name: 'Lead compatível 02', avatar: 'L2', color: '#8b5cf6', budget: 'R$ 0', score: 0, tag: 'Aguardando match' },
-  { name: 'Lead compatível 03', avatar: 'L3', color: '#10b981', budget: 'R$ 0', score: 0, tag: 'Aguardando match' },
+  { name: 'João Ferreira', avatar: 'JF', color: '#ef4444', budget: 'R$ 750k', score: 98, tag: 'Quente' },
+  { name: 'Beatriz Santos', avatar: 'BS', color: '#8b5cf6', budget: 'R$ 800k', score: 87, tag: 'Quente' },
+  { name: 'Rafael Mendes', avatar: 'RM', color: '#10b981', budget: 'R$ 700k', score: 71, tag: 'Morno' },
 ]
 
 const visits = [
-  { name: 'Visita aguardando agenda', date: '--', status: 'pending', avatar: 'AG', color: '#ef4444' },
-  { name: 'Horário ainda não definido', date: '--', status: 'pending', avatar: 'HD', color: '#8b5cf6' },
+  { name: 'João Ferreira', date: '08/03 · 10:00', status: 'confirmed', avatar: 'JF', color: '#ef4444' },
+  { name: 'Beatriz Santos', date: '09/03 · 15:00', status: 'pending', avatar: 'BS', color: '#8b5cf6' },
 ]
 
 export default function ScreenPropertyDetail({ property, onBack, onOpenEdit, onOpenScheduleVisit }) {

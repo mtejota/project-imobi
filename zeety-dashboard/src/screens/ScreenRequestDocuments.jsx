@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
+
+const LEADS = [
+  { id: 1, name: 'Beatriz Santos', avatar: 'BS', color: '#8b5cf6', stage: 'Negociação' },
+  { id: 2, name: 'João Ferreira', avatar: 'JF', color: '#ef4444', stage: 'Proposta' },
+  { id: 3, name: 'Rafael Mendes', avatar: 'RM', color: '#10b981', stage: 'Proposta' },
+]
 
 const DOC_TEMPLATES = {
   'Compra Financiada': ['RG + CPF', 'Certidão de Nascimento/Casamento', 'Comprovante de Renda (3 meses)', 'Extratos Bancários (3 meses)', 'Comprovante de Residência', 'Imposto de Renda', 'FGTS (extrato)'],
@@ -25,22 +31,22 @@ const initialDocs = [
   { id: 6, name: 'FGTS (extrato)', status: 'Pendente', reminder: 0, receivedAt: null },
 ]
 
-export default function ScreenRequestDocuments({ onBack, leads = [] }) {
-  const leadOptions = leads.slice(0, 3).map((lead, index) => ({
-    id: lead.id,
-    name: lead.name || `Lead ${index + 1}`,
-    avatar: lead.avatar || String(lead.name || `L${index + 1}`).slice(0, 2).toUpperCase(),
-    color: lead.color || ['#8b5cf6', '#ef4444', '#10b981'][index % 3],
-    stage: lead.stage || 'Em análise',
-  }))
-  const [selectedLead, setSelectedLead] = useState(leadOptions[0] || null)
+export default function ScreenRequestDocuments({ onBack }) {
+  const [selectedLead, setSelectedLead] = useState(LEADS[0])
   const [template, setTemplate] = useState('Compra Financiada')
   const [docs, setDocs] = useState(initialDocs)
   const [newDoc, setNewDoc] = useState('')
   const [activeTab, setActiveTab] = useState('checklist')
   const [sending, setSending] = useState(false)
   const [sentMsg, setSentMsg] = useState(false)
-  const [msgText, setMsgText] = useState('Olá. Para prosseguirmos com a negociação, precisamos dos documentos abaixo. Você pode enviar por aqui assim que estiver com tudo separado.')
+  const [msgText, setMsgText] = useState('Olá! Para prosseguirmos com sua proposta, precisamos dos seguintes documentos. Por favor, envie por aqui no WhatsApp.')
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1200)
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1200)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const updateStatus = (id, status) => setDocs((ds) => ds.map((d) => (d.id === id ? { ...d, status } : d)))
   const removeDoc = (id) => setDocs((ds) => ds.filter((d) => d.id !== id))
@@ -71,7 +77,7 @@ export default function ScreenRequestDocuments({ onBack, leads = [] }) {
         </div>
       )}
 
-      <div style={{ maxWidth: 1140, margin: '0 auto', padding: '24px 24px 32px', display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto', padding: '24px 24px 32px', display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 340px', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
@@ -83,13 +89,8 @@ export default function ScreenRequestDocuments({ onBack, leads = [] }) {
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '20px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 14 }}>Lead / Negociação</div>
-            {!leadOptions.length ? (
-              <div style={{ border: '1px dashed #cbd5e1', borderRadius: 12, background: '#f8fafc', padding: '18px 16px', fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>
-                Nenhum lead disponível no momento. Quando o backend retornar negociações ativas, a seleção aparecerá aqui.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: 10 }}>
-              {leadOptions.map((l) => (
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
+              {LEADS.map((l) => (
                 <button key={l.id} onClick={() => setSelectedLead(l)} style={{ flex: 1, padding: '12px 14px', borderRadius: 12, border: `2px solid ${selectedLead.id === l.id ? l.color : '#f1f5f9'}`, background: selectedLead.id === l.id ? `${l.color}10` : '#fff', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${l.color}20`, border: `2px solid ${l.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: l.color, flexShrink: 0 }}>{l.avatar}</div>
                   <div style={{ textAlign: 'left' }}>
@@ -98,8 +99,7 @@ export default function ScreenRequestDocuments({ onBack, leads = [] }) {
                   </div>
                 </button>
               ))}
-              </div>
-            )}
+            </div>
           </div>
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '20px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
@@ -124,9 +124,9 @@ export default function ScreenRequestDocuments({ onBack, leads = [] }) {
             {activeTab === 'checklist' && (
               <div>
                 <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 12 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1.2fr 1fr 100px', padding: '10px 20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '2fr 1fr' : '2.5fr 1.2fr 1fr 100px', padding: '10px 20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
                     {['Documento', 'Status', 'Lembretes', 'Ações'].map((h) => (
-                      <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', display: isCompact && (h === 'Lembretes' || h === 'Ações') ? 'none' : 'block' }}>
                         {h}
                       </span>
                     ))}
@@ -134,7 +134,7 @@ export default function ScreenRequestDocuments({ onBack, leads = [] }) {
                   {docs.map((doc, i) => {
                     const cfg = STATUS_CONFIG[doc.status]
                     return (
-                      <div key={doc.id} style={{ display: 'grid', gridTemplateColumns: '2.5fr 1.2fr 1fr 100px', padding: '14px 20px', alignItems: 'center', borderBottom: i < docs.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+                      <div key={doc.id} style={{ display: 'grid', gridTemplateColumns: isCompact ? '2fr 1fr' : '2.5fr 1.2fr 1fr 100px', padding: '14px 20px', alignItems: 'center', borderBottom: i < docs.length - 1 ? '1px solid #f8fafc' : 'none', gap: isCompact ? 10 : 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <div style={{ width: 34, height: 34, borderRadius: 10, background: `${cfg.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <Icon d={icons.file} size={15} stroke={cfg.color} />
@@ -153,8 +153,8 @@ export default function ScreenRequestDocuments({ onBack, leads = [] }) {
                             ))}
                           </select>
                         </div>
-                        <div style={{ fontSize: 11, color: '#94a3b8' }}>{doc.reminder > 0 ? `${doc.reminder}x enviado` : '-'}</div>
-                        <div style={{ display: 'flex', gap: 6 }}>
+                        <div style={{ fontSize: 11, color: '#94a3b8', display: isCompact ? 'none' : 'block' }}>{doc.reminder > 0 ? `${doc.reminder}x enviado` : '-'}</div>
+                        <div style={{ display: isCompact ? 'none' : 'flex', gap: 6 }}>
                           <button title="Lembrete WhatsApp" style={{ width: 28, height: 28, borderRadius: 8, background: '#f0fdf4', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Icon d={icons.bell} size={12} stroke="#10b981" />
                           </button>
@@ -222,11 +222,6 @@ export default function ScreenRequestDocuments({ onBack, leads = [] }) {
               </div>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>Enviar solicitação via WhatsApp</div>
             </div>
-            {selectedLead && (
-              <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>
-                Envio preparado para <strong style={{ color: '#0f172a' }}>{selectedLead.name}</strong>
-              </div>
-            )}
             <textarea
               value={msgText}
               onChange={(e) => setMsgText(e.target.value)}
@@ -234,8 +229,8 @@ export default function ScreenRequestDocuments({ onBack, leads = [] }) {
               style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.6, marginBottom: 12 }}
             />
             <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 12 }}>A lista de documentos sera adicionada automaticamente.</div>
-            <button onClick={handleSend} disabled={sending || !selectedLead} style={{ width: '100%', padding: 12, borderRadius: 12, border: 'none', background: sending || !selectedLead ? '#94a3b8' : '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: sending || !selectedLead ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
-              {sending ? 'Enviando...' : selectedLead ? `Enviar para ${selectedLead.name}` : 'Aguardando lead'}
+            <button onClick={handleSend} disabled={sending} style={{ width: '100%', padding: 12, borderRadius: 12, border: 'none', background: sending ? '#94a3b8' : '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: sending ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+              {sending ? 'Enviando...' : `Enviar para ${selectedLead.name}`}
             </button>
           </div>
 

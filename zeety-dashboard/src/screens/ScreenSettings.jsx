@@ -9,7 +9,7 @@ const tabs = [
   { id: 'integrations', label: 'Integrações' },
 ]
 
-export default function ScreenSettings({ userName = '', userEmail = '', userCreci = '', userPhoto = '', onChangeUserName, onChangeUserPhoto }) {
+export default function ScreenSettings({ userName = 'Lucas Correia', userEmail = 'lucas@zeety.com.br', userCreci = '', userPhoto = '', onChangeUserName, onChangeUserPhoto }) {
   const [tab, setTab] = useState('general')
   const [saving, setSaving] = useState(false)
   const [photoName, setPhotoName] = useState('Sem arquivo selecionado')
@@ -17,6 +17,7 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
   const [pairing, setPairing] = useState(false)
   const [evolutionInstance, setEvolutionInstance] = useState('')
   const [qrCodeValue, setQrCodeValue] = useState('')
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1024)
   const fileInputRef = useRef(null)
   const previousPhotoRef = useRef('')
 
@@ -32,7 +33,7 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
   const summaryItems = useMemo(
     () => [
       { label: 'Usuário', value: userName, color: '#1a56db' },
-      { label: 'Plano', value: 'Ativo', color: '#8b5cf6' },
+      { label: 'Plano', value: 'Ultra', color: '#8b5cf6' },
       { label: 'WhatsApp', value: isWhatsappConnected ? 'Conectado' : 'Pendente', color: isWhatsappConnected ? '#10b981' : '#f59e0b' },
     ],
     [isWhatsappConnected, userName]
@@ -58,6 +59,12 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
     return () => {
       mounted = false
     }
+  }, [])
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1024)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   const handlePhotoChange = (event) => {
@@ -102,7 +109,7 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
                 <img src={qrCodeValue} alt="QR Code WhatsApp" style={{ width: 220, height: 220, borderRadius: 12, border: '1px solid #e2e8f0' }} />
               ) : (
                 <div style={{ width: 220, height: 220, borderRadius: 12, border: '1px dashed #cbd5e1', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 20, fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
-                  O QR Code será exibido aqui assim que a API retornar a sessão de conexão.
+                  O QR Code será exibido aqui quando a API retornar a sessão de conexão.
                 </div>
               )}
             </div>
@@ -129,7 +136,7 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
           <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Preferências da conta, alertas e integrações</div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 300px', gap: 16, marginBottom: 16 }}>
           <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f1f5f9' }}>
             {tabs.map((item) => (
               <button
@@ -153,7 +160,19 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
             ))}
           </div>
 
-          <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 14, padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            style={{
+              background: '#fff',
+              border: '1px solid #f1f5f9',
+              borderRadius: 14,
+              padding: '10px 12px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: isCompact ? 'wrap' : 'nowrap',
+            }}
+          >
             {summaryItems.map((item) => (
               <div key={item.label} style={{ textAlign: 'center', flex: 1 }}>
                 <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>{item.label}</div>
@@ -165,7 +184,7 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
 
         <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 16, padding: 22, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
           {tab === 'general' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '280px 1fr', gap: 18 }}>
               <div style={{ border: '1px solid #f1f5f9', borderRadius: 14, padding: 16, background: '#f8fafc' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Perfil do usuário</div>
 
@@ -189,7 +208,7 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 14 }}>
                 <Field label="Nome do usuário">
                   <Input
                     value={userName}
@@ -206,7 +225,7 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
                 <Field label="CRECI">
                   <Input value={userCreci || '-'} readOnly disabled />
                 </Field>
-                <Field label="Telefone"><Input placeholder="+55 (00) 00000-0000" /></Field>
+                <Field label="Telefone"><Input defaultValue="+55 (11) 99888-7766" /></Field>
                 </div>
 
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: 14, background: '#f8fafc', padding: 14 }}>
@@ -217,12 +236,12 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isCompact ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 8 }}>
                     {[
-                      { label: 'Conversas ativas', value: isWhatsappConnected ? 'Conectado' : '--', color: '#1a56db' },
-                      { label: 'Leads no mês', value: '--', color: '#8b5cf6' },
-                      { label: 'Tempo resposta', value: '--', color: '#10b981' },
-                      { label: 'Taxa conversão', value: '--', color: '#f59e0b' },
+                      { label: 'Conversas ativas', value: '06', color: '#1a56db' },
+                      { label: 'Leads no mês', value: '47', color: '#8b5cf6' },
+                      { label: 'Tempo resposta', value: '4min', color: '#10b981' },
+                      { label: 'Taxa conversão', value: '6.4%', color: '#f59e0b' },
                     ].map((item) => (
                       <div key={item.label} style={{ border: '1px solid #e2e8f0', borderRadius: 10, background: '#fff', padding: '10px 8px', textAlign: 'center' }}>
                         <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>{item.label}</div>
@@ -253,7 +272,7 @@ export default function ScreenSettings({ userName = '', userEmail = '', userCrec
           )}
 
           {tab === 'integrations' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 12 }}>
               <IntegrationCard
                 title="WhatsApp via QR Code"
                 subtitle="Conexão direta com criação de instância Evolution"

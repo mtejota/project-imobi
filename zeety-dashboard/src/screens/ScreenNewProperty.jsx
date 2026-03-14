@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
@@ -55,6 +55,7 @@ function Select({ options, value, onChange }) {
 export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
   const [step, setStep] = useState(0)
   const [done, setDone] = useState(false)
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 960)
   const [features, setFeatures] = useState([])
   const [photos, setPhotos] = useState(PHOTO_URLS)
   const [portals, setPortals] = useState({ zap: true, viva: true, olx: false, site: true })
@@ -86,6 +87,12 @@ export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
   const toggleFeature = (f) => setFeatures((fs) => (fs.includes(f) ? fs.filter((x) => x !== f) : [...fs, f]))
 
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 960)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   if (done) {
     return (
       <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
@@ -96,7 +103,7 @@ export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
             <Icon d={icons.zap} size={14} stroke="#10b981" />
             <span style={{ fontSize: 12, color: '#16a34a' }}>3 leads encontrados</span>
           </div>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => { setDone(false); setStep(0) }} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid #e2e8f0', background: '#fff', fontSize: 13, fontWeight: 700, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}>
               + Cadastrar outro
             </button>
@@ -120,7 +127,7 @@ export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
           <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Cadastrar Imóvel</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 32, overflowX: 'auto', paddingBottom: 8 }}>
           {STEPS.map((s, i) => (
             <div key={s} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? 1 : 0 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
@@ -135,14 +142,14 @@ export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
         </div>
 
         <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <div style={{ padding: '24px 32px', borderBottom: '1px solid #f8fafc', background: 'linear-gradient(135deg, #eff6ff 0%, #fff 60%)' }}>
+          <div style={{ padding: isCompact ? '20px 18px' : '24px 32px', borderBottom: '1px solid #f8fafc', background: 'linear-gradient(135deg, #eff6ff 0%, #fff 60%)' }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>{STEPS[step]}</div>
             <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Passo {step + 1} de {STEPS.length}</div>
           </div>
 
-          <div style={{ padding: 32 }}>
+          <div style={{ padding: isCompact ? 18 : 32 }}>
             {step === 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '0 24px' }}>
                 <div style={{ gridColumn: '1/-1' }}><Field label="CEP" required><Input placeholder="00000-000" value={form.cep} onChange={set('cep')} /></Field></div>
                 <div style={{ gridColumn: '1/-1' }}><Field label="Logradouro" required><Input placeholder="Rua, Avenida..." value={form.street} onChange={set('street')} /></Field></div>
                 <Field label="Número" required><Input placeholder="1247" value={form.number} onChange={set('number')} /></Field>
@@ -154,7 +161,7 @@ export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
             )}
 
             {step === 1 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '0 24px' }}>
                 <Field label="Tipo" required><Select options={['Apartamento', 'Casa', 'Cobertura', 'Studio']} value={form.type} onChange={set('type')} /></Field>
                 <Field label="Finalidade"><Select options={['Residencial', 'Comercial']} value={form.purpose} onChange={set('purpose')} /></Field>
                 <Field label="Área total (m²)" required><Input placeholder="78" type="number" value={form.area} onChange={set('area')} /></Field>
@@ -185,7 +192,7 @@ export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
                   <Icon d={icons.upload} size={32} stroke="#94a3b8" />
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#374151', marginTop: 12 }}>Upload de fotos</div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 12 }}>
                   {photos.map((p, i) => (
                     <div key={i} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', aspectRatio: '4/3' }}>
                       <img src={p} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -199,7 +206,7 @@ export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
             )}
 
             {step === 3 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '0 24px' }}>
                 <div style={{ gridColumn: '1/-1' }}><Field label="Preço de venda" required><Input placeholder="750000" type="number" prefix="R$" value={form.price} onChange={set('price')} /></Field></div>
                 <Field label="Condomínio / mês"><Input placeholder="1200" type="number" prefix="R$" value={form.condo} onChange={set('condo')} /></Field>
                 <Field label="IPTU / ano"><Input placeholder="3200" type="number" prefix="R$" value={form.iptu} onChange={set('iptu')} /></Field>
@@ -238,7 +245,7 @@ export default function ScreenNewProperty({ onBack, onOpenPropertyDetail }) {
             )}
           </div>
 
-          <div style={{ padding: '20px 32px', borderTop: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
+          <div style={{ padding: isCompact ? '14px 18px' : '20px 32px', borderTop: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa', gap: 10 }}>
             <button onClick={() => step > 0 && setStep(step - 1)} style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid #e2e8f0', background: '#fff', fontSize: 13, fontWeight: 700, color: step === 0 ? '#e2e8f0' : '#64748b', cursor: step === 0 ? 'default' : 'pointer', fontFamily: 'inherit' }}>
               ← Voltar
             </button>

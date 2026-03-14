@@ -35,6 +35,12 @@ export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiation
       ),
     [pipelineState, stages]
   )
+  const avgTicket = useMemo(() => (total > 0 ? totalPortfolioValue / total : 0), [totalPortfolioValue, total])
+  const avgClosingChance = useMemo(() => {
+    const chances = stages.flatMap((stage) => pipelineState[stage].map((card) => getUrgency(card).closingChance))
+    if (!chances.length) return 0
+    return Math.round(chances.reduce((sum, value) => sum + value, 0) / chances.length)
+  }, [pipelineState, stages])
 
   const handleDragStart = (cardId, fromStage) => {
     setDraggingCardId(cardId)
@@ -94,6 +100,15 @@ export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiation
 
   return (
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%', position: 'relative' }}>
+      <style>{`
+        @media (max-width: 980px) {
+          .pipeline-kpis { grid-template-columns: 1fr 1fr !important; }
+          .pipeline-head { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+        }
+        @media (max-width: 720px) {
+          .pipeline-kpis { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {pendingMove && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', zIndex: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ width: 430, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: 22, boxShadow: '0 24px 60px rgba(0,0,0,0.18)' }}>
@@ -119,9 +134,9 @@ export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiation
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div className="pipeline-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>Pipeline de Negociações</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>Pipeline de Negociações</div>
           <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>{total} negociações ativas · {formatPortfolioValue(totalPortfolioValue)} em carteira</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
@@ -130,18 +145,25 @@ export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiation
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 16 }}>
+      <div className="pipeline-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, marginBottom: 16 }}>
+        <PipelineKpi label="Negociações" value={String(total)} delta="+9%" color="#3b82f6" bg="#eff6ff" />
+        <PipelineKpi label="Ticket médio" value={formatPortfolioValue(avgTicket)} delta="+6%" color="#8b5cf6" bg="#f5f3ff" />
+        <PipelineKpi label="Negociações na carteira" value={formatPortfolioValue(totalPortfolioValue)} delta="+11%" color="#f97316" bg="#fff7ed" />
+        <PipelineKpi label="Chance média" value={`${avgClosingChance}%`} delta="+4%" color="#10b981" bg="#f0fdf4" />
+      </div>
+
+      <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 16 }}>
         {stages.map((stage) => (
           <div
             key={stage}
             style={{
-              minWidth: 220,
+              minWidth: 260,
               flex: 1,
-              background: dragOverStage === stage ? '#eff6ff' : 'transparent',
-              borderRadius: 14,
-              border: dragOverStage === stage ? '1px dashed #93c5fd' : '1px dashed transparent',
+              background: dragOverStage === stage ? '#eff6ff' : '#f8fafc',
+              borderRadius: 16,
+              border: dragOverStage === stage ? '1px dashed #93c5fd' : '1px solid #e2e8f0',
               transition: 'background 0.2s ease, border-color 0.2s ease',
-              padding: 6,
+              padding: 8,
             }}
             onDragOver={(e) => {
               e.preventDefault()
@@ -153,7 +175,7 @@ export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiation
               handleDropOnStage(stage)
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, position: 'sticky', top: 0, background: dragOverStage === stage ? '#eff6ff' : '#f8fafc', zIndex: 2, paddingBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: stageColors[stage] }} />
                 <span style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>{stage}</span>
@@ -202,11 +224,11 @@ export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiation
                     }}
                     onClick={() => onOpenNegotiationDetail?.({ ...card, stage })}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                         <Avatar initials={card.avatar} color={card.color} size={30} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{card.name}</div>
-                          <div style={{ fontSize: 10, color: '#94a3b8' }}>{card.property}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</div>
+                          <div style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.property}</div>
                         </div>
                         <button
                           title="Apagar negociação"
@@ -226,7 +248,7 @@ export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiation
                         <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', fontFamily: "'DM Mono', monospace" }}>{card.value}</span>
                         <span style={{ fontSize: 10, color: '#94a3b8' }}>{card.days}d</span>
                       </div>
-                      <div style={{ fontSize: 10, color: '#64748b', lineHeight: 1.45 }}>
+                      <div style={{ fontSize: 10, color: '#64748b', lineHeight: 1.45, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         Risco: <strong style={{ color: urgency.color }}>{urgency.riskLabel}</strong> · Chance: <strong style={{ color: '#0f172a' }}>{urgency.closingChance}%</strong>
                       </div>
                       <div style={{ marginTop: 6, height: 5, borderRadius: 6, background: '#f1f5f9', overflow: 'hidden' }}>
@@ -235,7 +257,7 @@ export default function ScreenPipeline({ initialPipeline = {}, onOpenNegotiation
                   </div>
                 )
               })}
-              <button onClick={onOpenNewNegotiation} style={{ width: '100%', padding: '10px', borderRadius: 14, border: '2px dashed #e2e8f0', background: 'transparent', color: '#cbd5e1', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>+ Adicionar</button>
+              <button onClick={onOpenNewNegotiation} style={{ width: '100%', padding: '10px', borderRadius: 12, border: '2px dashed #cbd5e1', background: '#fff', color: '#94a3b8', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>+ Adicionar</button>
             </div>
           </div>
         ))}
@@ -271,4 +293,16 @@ function formatPortfolioValue(value) {
   if (amount >= 1000000) return `R$ ${(amount / 1000000).toFixed(2)}M`
   if (amount >= 1000) return `R$ ${(amount / 1000).toFixed(0)}k`
   return `R$ ${amount.toLocaleString('pt-BR')}`
+}
+
+function PipelineKpi({ label, value, delta, color, bg }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e2e8f0', padding: '12px 14px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>{label}</div>
+        <div style={{ fontSize: 10, fontWeight: 800, color, background: bg, borderRadius: 999, padding: '3px 8px' }}>{delta}</div>
+      </div>
+      <div style={{ fontSize: 22, color: '#0f172a', fontWeight: 800, fontFamily: "'DM Mono', monospace", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+    </div>
+  )
 }

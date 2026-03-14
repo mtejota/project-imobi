@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
@@ -8,13 +8,20 @@ export default function ScreenNewNegotiation({ leads = [], properties = [], onBa
   const [leadId, setLeadId] = useState(String(leads[0]?.id || ''))
   const [propertyId, setPropertyId] = useState(String(properties[0]?.id || ''))
   const [stage, setStage] = useState('Prospecção')
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState('750000')
   const [priority, setPriority] = useState('Média')
-  const [notes, setNotes] = useState('')
+  const [notes, setNotes] = useState('Lead demonstrou interesse alto. Agendar visita na próxima janela disponível.')
   const [creating, setCreating] = useState(false)
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1040)
 
   const selectedLead = useMemo(() => leads.find((l) => String(l.id) === leadId), [leadId])
   const selectedProperty = useMemo(() => properties.find((p) => String(p.id) === propertyId), [propertyId])
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1040)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const handleCreate = () => {
     setCreating(true)
@@ -35,9 +42,9 @@ export default function ScreenNewNegotiation({ leads = [], properties = [], onBa
           <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Nova Negociação</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 18 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 320px', gap: 18 }}>
           <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 16, padding: 22, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 14 }}>
               <Field label="Lead">
                 <select value={leadId} onChange={(e) => setLeadId(e.target.value)} style={selectStyle}>
                   {leads.map((lead) => (

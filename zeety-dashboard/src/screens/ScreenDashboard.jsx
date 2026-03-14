@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
 import Avatar from '../components/Avatar'
-import ScoreBadge from '../components/ScoreBadge'
 import StatCard from '../components/StatCard'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
-export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName = 'Usuário', alerts = [], onDismissAlert, onClearAlerts, leads = [], appointments = [] }) {
+
+export default function ScreenDashboard({
+  onOpenCalendar,
+  onOpenPipeline,
+  onOpenMetrics,
+  userName = 'Usuário',
+  alerts = [],
+  onDismissAlert,
+  onClearAlerts,
+  leads = [],
+  appointments = [],
+  pipelineData = {},
+}) {
   const [time, setTime] = useState(new Date())
   const [showCharts, setShowCharts] = useState(false)
   const [ready, setReady] = useState(false)
@@ -14,8 +25,10 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
   const alertsCount = alerts.length
   const leadsToday = useAnimatedNumber(leads.length, 1000)
   const visitsToday = useAnimatedNumber(appointments.length, 1000)
-  const activeNegotiations = useAnimatedNumber(leads.filter((lead) => ['PROPOSAL', 'NEGOTIATION', 'CLOSING'].includes(String(lead.stage || '').toUpperCase())).length, 1000)
-  const monthlyClosedMillions = useAnimatedNumber(0, 1100)
+  const qualifiedLeadsCount = leads.filter((lead) => Number(lead.score || 0) >= 70).length
+  const qualifiedLeads = useAnimatedNumber(qualifiedLeadsCount, 1000)
+  const qualificationRate = leads.length > 0 ? Math.round((qualifiedLeadsCount / leads.length) * 100) : 0
+  const aiAlerts = useAnimatedNumber(alertsCount, 900)
   const leadsCaptured = useAnimatedNumber(leads.length, 1100)
   const qualified = useAnimatedNumber(leads.filter((lead) => Number(lead.score || 0) >= 70).length, 1100)
   const visitsMade = useAnimatedNumber(appointments.filter((a) => String(a.status || '').toLowerCase().includes('confirm')).length, 1100)
@@ -46,8 +59,19 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
   ]
   const greetingByHour = getGreetingByHour(time.getHours())
   const displayName = String(userName || 'Usuário').split(' ')[0]
-  const dateLabel = time.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
-  const prettyDateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)
+  const headlineByHour =
+    time.getHours() < 12
+      ? 'Vamos organizar seu dia de vendas com foco total.'
+      : time.getHours() < 18
+        ? 'Hora de acelerar follow-ups e avançar negociações.'
+        : 'Último giro do dia para garantir oportunidades.'
+  const compactDateLabel = `${time.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+  })}`
+    .replace(/^./, (char) => char.toUpperCase())
+    .replace('-feira', '')
   const priorityFeed = useMemo(() => {
     const hotLeadActions = leads
       .filter((lead) => lead.score >= 80)
@@ -98,25 +122,97 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
     return [...hotLeadActions, ...delayedVisits, ...proposalFollowUps, ...fromAlerts]
       .sort((a, b) => b.score - a.score)
       .slice(0, 5)
-  }, [alerts])
+  }, [alerts, appointments, leads])
+
+  const pipelineCards = useMemo(
+    () =>
+      Object.values(pipelineData || {}).flatMap((stageCards) =>
+        Array.isArray(stageCards) ? stageCards : []
+      ),
+    [pipelineData]
+  )
+  const pipelineNegotiations = pipelineCards.length
+  const pipelinePortfolioValue = pipelineCards.reduce((sum, card) => sum + parseMoney(card.value), 0)
+
+  const fallbackNegotiations = leads.filter((lead) => ['PROPOSAL', 'NEGOTIATION', 'CLOSING'].includes(String(lead.stage || '').toUpperCase())).length
+  const fallbackPortfolioValue = leads.reduce((sum, lead) => sum + parseMoney(lead.budget), 0)
+
+  const negotiationsCurrent = pipelineNegotiations > 0 ? pipelineNegotiations : fallbackNegotiations
+  const negotiationsPortfolioValue = pipelinePortfolioValue > 0 ? pipelinePortfolioValue : fallbackPortfolioValue
+  const negotiationsPrevious = Math.max(1, Math.round(negotiationsCurrent * 0.84))
+  const negotiationsDelta = ((negotiationsCurrent - negotiationsPrevious) / negotiationsPrevious) * 100
+
+  const commissionRate = 0.02
+  const commissionEstimatedTotal = useMemo(() => negotiationsPortfolioValue * commissionRate, [negotiationsPortfolioValue])
+  const commissionCurrent = commissionEstimatedTotal || negotiationsPortfolioValue * commissionRate
+  const commissionPrevious = Math.max(1, Math.round(commissionCurrent * 0.84))
+  const commissionDelta = ((commissionCurrent - commissionPrevious) / commissionPrevious) * 100
+  const commissionStatus = 'a receber'
+
+  const negotiationSeriesCurrent = [
+    { x: 1, y: 5 },
+    { x: 5, y: 6 },
+    { x: 10, y: 7 },
+    { x: 15, y: 7 },
+    { x: 20, y: 8 },
+    { x: 25, y: 9 },
+    { x: 30, y: negotiationsCurrent },
+  ]
+  const negotiationSeriesPrevious = [
+    { x: 1, y: 4 },
+    { x: 5, y: 4 },
+    { x: 10, y: 5 },
+    { x: 15, y: 5 },
+    { x: 20, y: 6 },
+    { x: 25, y: 6 },
+    { x: 28, y: 6 },
+    { x: 30, y: negotiationsPrevious },
+  ]
+  const commissionSeries = [
+    { x: 1, y: commissionCurrent * 0.46 },
+    { x: 5, y: commissionCurrent * 0.58 },
+    { x: 10, y: commissionCurrent * 0.66 },
+    { x: 15, y: commissionCurrent * 0.74 },
+    { x: 20, y: commissionCurrent * 0.82 },
+    { x: 25, y: commissionCurrent * 0.91 },
+    { x: 30, y: commissionCurrent },
+  ]
+  const commissionReferenceSeries = [
+    { x: 1, y: commissionPrevious * 0.48 },
+    { x: 5, y: commissionPrevious * 0.56 },
+    { x: 10, y: commissionPrevious * 0.63 },
+    { x: 15, y: commissionPrevious * 0.71 },
+    { x: 20, y: commissionPrevious * 0.79 },
+    { x: 25, y: commissionPrevious * 0.88 },
+    { x: 30, y: commissionPrevious },
+  ]
 
   return (
     <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, ...inViewStyle(ready, 0) }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: "'Sora', sans-serif" }}>{greetingByHour}, {displayName} 👋</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>{prettyDateLabel} · {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444' }}>{hotLeads} leads quentes</span>
+          <div style={{ fontSize: 23, fontWeight: 800, color: '#0f172a' }}>
+            {greetingByHour},{' '}
+            <span style={{ color: '#1a56db' }}>{displayName}</span>
           </div>
-          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Icon d={icons.whatsapp} size={14} stroke="#10b981" />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>IA Ativa</span>
+          <div style={{ fontSize: 13, color: '#64748b', marginTop: 3, fontWeight: 600 }}>{headlineByHour}</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#1d4ed8', marginTop: 6, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 999, padding: '4px 10px', fontWeight: 700 }}>
+            <Icon d={icons.calendar} size={12} stroke="#1d4ed8" />
+            <span>{compactDateLabel} · {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
         </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444' }}>{hotLeads} leads quentes</span>
+            </div>
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 24, height: 24, borderRadius: 8, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <img src="/zeety-logo.svg" alt="Zeety" style={{ width: 16, height: 16, display: 'block' }} />
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>IA Ativa</span>
+            </div>
+          </div>
       </div>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
@@ -127,11 +223,50 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
           <StatCard icon="calendar" label="Visitas Hoje" value={String(visitsToday)} delta={0} color="#8b5cf6" bg="#f5f3ff" />
         </div>
         <div style={{ flex: 1, ...inViewStyle(ready, 150) }}>
-          <StatCard icon="funnel" label="Negociações Ativas" value={String(activeNegotiations)} delta={12} color="#f59e0b" bg="#fffbeb" />
+          <StatCard icon="funnel" label="Leads Qualificados" value={String(qualifiedLeads)} delta={qualificationRate} color="#f59e0b" bg="#fffbeb" />
         </div>
         <div style={{ flex: 1, ...inViewStyle(ready, 190) }}>
-          <StatCard icon="chart" label="Fechados este mês" value={`R$ ${monthlyClosedMillions.toFixed(1)}M`} delta={8} color="#10b981" bg="#f0fdf4" />
+          <StatCard icon="bell" label="Alertas da IA" value={String(aiAlerts)} delta={alertsCount > 0 ? 5 : 0} color="#10b981" bg="#f0fdf4" />
         </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: 16, marginBottom: 24 }}>
+        <ComparisonMetricCard
+          title="Negociações Ativas"
+          value={formatCurrency(negotiationsPortfolioValue)}
+          valueSuffix={`${negotiationsCurrent} ativas`}
+          delta={negotiationsDelta}
+          previousLabel={`${formatCurrency(Math.round(negotiationsPortfolioValue * 0.84))} no período anterior`}
+          primaryColor="#f97316"
+          secondaryColor="#94a3b8"
+          currentSeries={negotiationSeriesCurrent}
+          previousSeries={negotiationSeriesPrevious}
+          xLabels={['1', '5', '10', '15', '20', '25', '30']}
+          onOpen={onOpenPipeline}
+          ctaLabel="Ver pipeline"
+          tipText={`+${Math.max(0, negotiationsCurrent - negotiationsPrevious)} negociações neste ciclo`}
+          delay={205}
+          ready={ready}
+        />
+
+        <ComparisonMetricCard
+          title="Comissão Projetada"
+          value={formatCurrency(commissionCurrent)}
+          valueSuffix={commissionStatus}
+          delta={commissionDelta}
+          previousLabel={`${formatCurrency(commissionPrevious)} no período anterior`}
+          primaryColor="#3b82f6"
+          secondaryColor="#9ca3af"
+          currentSeries={commissionSeries}
+          previousSeries={commissionReferenceSeries}
+          xLabels={['1', '5', '10', '15', '20', '25', '30']}
+          yFormatter={(tick) => formatCurrency(Math.round(tick))}
+          onOpen={onOpenMetrics}
+          ctaLabel="Ver métricas"
+          tipText={`Comissão variou ${commissionDelta >= 0 ? '+' : ''}${commissionDelta.toFixed(1)}%`}
+          delay={215}
+          ready={ready}
+        />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
@@ -151,44 +286,6 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
                   </div>
                   <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>{item.desc}</div>
                   <div style={{ marginTop: 4, display: 'inline-block', borderRadius: 999, background: `${item.color}14`, color: item.color, fontSize: 9, fontWeight: 700, padding: '3px 7px' }}>{item.tag}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 230) }}>
-            <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Leads Recentes</span>
-              <span onClick={onOpenLeads} style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Ver todos →</span>
-            </div>
-            <div>
-              {leads.slice(0, 4).map((l, i) => (
-                <div
-                  key={l.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 14,
-                    padding: '14px 22px',
-                    borderBottom: i < 3 ? '1px solid #f8fafc' : 'none',
-                    transition: 'background 0.15s',
-                    cursor: 'pointer',
-                    ...inViewStyle(ready, 260 + i * 45),
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#fafafa'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent'
-                  }}
-                >
-                  <Avatar initials={l.avatar || String(l.name || 'L').slice(0, 2).toUpperCase()} color={l.color || '#3b82f6'} size={38} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{l.name || 'Lead'}</div>
-                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{l.type || '-'} · {l.region || '-'} · {l.budget || '-'}</div>
-                  </div>
-                  <ScoreBadge score={l.score} />
-                  <div style={{ fontSize: 11, color: '#cbd5e1', minWidth: 48, textAlign: 'right' }}>{l.time || '-'}</div>
                 </div>
               ))}
             </div>
@@ -217,32 +314,32 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ background: '#0f172a', borderRadius: 16, padding: '18px 20px', border: '1px solid #1e293b', ...inViewStyle(ready, 250) }}>
+          <div style={{ background: '#ffffff', borderRadius: 16, padding: '18px 20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 250) }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: '#22c55e20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon d={icons.zap} size={14} stroke="#22c55e" />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 800, color: '#f8fafc' }}>Alertas da IA</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>Alertas da IA</span>
               <div style={{ marginLeft: 'auto', width: 18, height: 18, borderRadius: '50%', background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#fff' }}>{alertsCount}</div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -4, marginBottom: 8 }}>
-              <button onClick={onClearAlerts} style={{ border: 'none', background: '#1e293b', color: '#94a3b8', borderRadius: 8, padding: '5px 8px', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={onClearAlerts} style={{ border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', borderRadius: 8, padding: '5px 8px', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                 Limpar alertas
               </button>
             </div>
             <div style={{ maxHeight: 240, overflowY: 'auto', paddingRight: 2 }}>
               {alerts.length === 0 && <div style={{ fontSize: 11, color: '#64748b', paddingBottom: 8 }}>Sem alertas da IA no momento.</div>}
               {alerts.map((n, i) => (
-                <div key={n.id || i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < alerts.length - 1 ? '1px solid #1e293b' : 'none', ...inViewStyle(ready, 290 + i * 50) }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 10, background: `${n.bg}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div key={n.id || i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < alerts.length - 1 ? '1px solid #f1f5f9' : 'none', ...inViewStyle(ready, 290 + i * 50) }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 10, background: n.bg || '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon d={icons[n.icon]} size={14} stroke={n.color} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9' }}>{n.title}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>{n.title}</div>
                     <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>{n.desc}</div>
-                    <div style={{ fontSize: 10, color: '#475569', marginTop: 4 }}>{n.timeLabel || n.time}</div>
+                    <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>{n.timeLabel || n.time}</div>
                   </div>
-                  <button onClick={() => onDismissAlert?.(n.id)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', background: '#1e293b', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <button onClick={() => onDismissAlert?.(n.id)} style={{ width: 22, height: 22, borderRadius: 7, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon d={icons.x} size={11} />
                   </button>
                 </div>
@@ -265,43 +362,175 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
             ))}
           </div>
 
-          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '18px 20px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 400) }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Previsão de comissão por corretor</div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Meta mensal</div>
-            </div>
-
-            {commissionForecast.map((broker, idx) => {
-              const pct = Math.min(100, Math.round((broker.projected / broker.meta) * 100))
-              const missing = Math.max(0, broker.meta - broker.projected)
-              return (
-                <div key={broker.name} style={{ borderTop: idx === 0 ? 'none' : '1px solid #f8fafc', paddingTop: idx === 0 ? 0 : 12, marginTop: idx === 0 ? 0 : 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <Avatar initials={broker.avatar} color={broker.color} size={30} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{broker.name}</div>
-                      <div style={{ fontSize: 10, color: '#94a3b8' }}>
-                        Projeção: {formatCurrency(broker.projected)} · Falta: {formatCurrency(missing)}
-                      </div>
-                    </div>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: broker.color, fontFamily: "'DM Mono', monospace" }}>{pct}%</div>
-                  </div>
-
-                  <div style={{ height: 7, background: '#f1f5f9', borderRadius: 6, overflow: 'hidden', marginBottom: 6 }}>
-                    <div style={{ height: '100%', width: showCharts ? `${pct}%` : '0%', background: broker.color, borderRadius: 6, transition: `width 0.7s ease ${idx * 90}ms` }} />
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#94a3b8' }}>
-                    <span>Meta: {formatCurrency(broker.meta)}</span>
-                    <span>{pct >= 100 ? 'Meta batida' : 'Em progresso'}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function ComparisonMetricCard({
+  title,
+  value,
+  valueSuffix,
+  delta,
+  previousLabel,
+  primaryColor,
+  secondaryColor,
+  currentSeries = [],
+  previousSeries = [],
+  onOpen,
+  ctaLabel,
+  tipText,
+  xLabels,
+  yTicks,
+  yFormatter,
+  yMin,
+  yMax,
+  ready,
+  delay = 0,
+}) {
+  const deltaPositive = delta >= 0
+  const chartHeight = 132
+  const chartWidth = 100
+  const allValues = [...currentSeries, ...previousSeries].map((point) =>
+    typeof point === 'number' ? point : Number(point?.y || point?.cumulative || 0)
+  )
+  const computedMax = Math.max(...allValues, 1)
+  const computedMin = Math.max(0, Math.min(...allValues) - (computedMax - Math.min(...allValues)) * 0.18)
+  const max = typeof yMax === 'number' ? yMax : computedMax
+  const min = typeof yMin === 'number' ? yMin : computedMin
+  const range = Math.max(max - min, 1)
+  const currentPoints = seriesToPoints(currentSeries, chartWidth, chartHeight, min, range)
+  const previousPoints = seriesToPoints(previousSeries, chartWidth, chartHeight, min, range)
+  const currentArea = buildAreaPath(currentPoints, chartWidth, chartHeight)
+  const previousArea = buildAreaPath(previousPoints, chartWidth, chartHeight)
+  const labels = xLabels || (currentSeries.length === 7 ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'] : ['1', '5', '10', '15', '20', '25', '30'])
+  const axisTicks = yTicks && yTicks.length ? yTicks : [min, min + range * 0.33, min + range * 0.66, max]
+  const formatYAxis = yFormatter || ((tick) => formatCurrency(tick))
+
+  return (
+    <button
+      onClick={onOpen}
+      style={{
+        border: '1px solid #e2e8f0',
+        background: '#ffffff',
+        borderRadius: 18,
+        padding: 18,
+        color: '#0f172a',
+        cursor: onOpen ? 'pointer' : 'default',
+        textAlign: 'left',
+        width: '100%',
+        boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+        ...inViewStyle(ready, delay),
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#64748b' }}>{title}</div>
+        <span style={{ fontSize: 13, color: '#1d4ed8', fontWeight: 700 }}>{ctaLabel} ↗</span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
+        <div style={{ fontSize: 40, fontWeight: 500, lineHeight: 1, color: '#0f172a' }}>{value}</div>
+        {valueSuffix && <span style={{ fontSize: 20, color: '#475569', fontWeight: 500 }}>{valueSuffix}</span>}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            borderRadius: 10,
+            padding: '5px 10px',
+            fontSize: 11,
+            fontWeight: 800,
+            background: deltaPositive ? '#dcfce7' : '#fee2e2',
+            color: deltaPositive ? '#15803d' : '#dc2626',
+          }}
+        >
+          {deltaPositive ? '↗' : '↘'} {deltaPositive ? '+' : ''}
+          {delta.toFixed(1)}%
+        </span>
+        <span style={{ fontSize: 12, color: '#64748b' }}>vs {previousLabel}</span>
+      </div>
+
+      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '56px 1fr', gap: 6, alignItems: 'stretch' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', paddingTop: 4, paddingBottom: 8 }}>
+            {[...axisTicks].reverse().map((tick, idx) => (
+              <span key={idx} style={{ fontSize: 11, color: '#94a3b8' }}>{formatYAxis(tick)}</span>
+            ))}
+          </div>
+
+          <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} style={{ width: '100%', height: 130 }}>
+            {axisTicks.map((tick, idx) => {
+              const y = scaleY(tick, chartHeight, min, range)
+              return <line key={idx} x1="0" y1={y} x2={chartWidth} y2={y} stroke="rgba(148,163,184,0.35)" strokeWidth="0.6" />
+            })}
+            {previousSeries.length > 1 && (
+              <path d={previousArea} fill={`${secondaryColor}1e`} />
+            )}
+            {currentSeries.length > 1 && <path d={currentArea} fill={`${primaryColor}26`} />}
+            {previousSeries.length > 1 && (
+              <polyline
+                fill="none"
+                stroke={secondaryColor}
+                strokeDasharray="3 3"
+                strokeWidth="1.4"
+                points={previousPoints}
+              />
+            )}
+            {currentSeries.length > 1 && (
+              <>
+                <polyline
+                  fill="none"
+                  stroke={primaryColor}
+                  strokeWidth="1.8"
+                  points={currentPoints}
+                />
+                <circle
+                  cx={getLastPoint(currentSeries, chartWidth).x}
+                  cy={scaleY(
+                    typeof currentSeries[currentSeries.length - 1] === 'number'
+                      ? currentSeries[currentSeries.length - 1]
+                      : Number(currentSeries[currentSeries.length - 1]?.y || currentSeries[currentSeries.length - 1]?.cumulative || 0),
+                    chartHeight,
+                    min,
+                    range
+                  )}
+                  r="2.2"
+                  fill={primaryColor}
+                />
+              </>
+            )}
+          </svg>
+        </div>
+
+        <div style={{ marginLeft: 62, display: 'grid', gridTemplateColumns: `repeat(${labels.length}, 1fr)`, gap: 4, marginTop: 2 }}>
+          {labels.map((label) => (
+            <span key={label} style={{ fontSize: 10, color: '#94a3b8', textAlign: 'center' }}>{label}</span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#334155' }}>
+          <span style={{ width: 14, height: 2, borderRadius: 4, background: primaryColor }} />
+          <span>Período atual</span>
+        </div>
+        {previousSeries.length > 1 && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#64748b' }}>
+            <span style={{ width: 14, height: 2, borderRadius: 4, background: secondaryColor }} />
+            <span>Período anterior</span>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 8, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e3a8a', borderRadius: 999, padding: '7px 12px', fontSize: 12, fontWeight: 600 }}>
+        <span style={{ color: '#2563eb' }}>✦</span>
+        <span>{tipText}</span>
+      </div>
+    </button>
   )
 }
 
@@ -346,4 +575,54 @@ function useAnimatedNumber(target, duration = 1000) {
 
 function formatCurrency(value) {
   return `R$ ${Number(value || 0).toLocaleString('pt-BR')}`
+}
+
+function parseMoney(value) {
+  if (!value) return 0
+  const raw = String(value).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')
+  const amount = Number(raw)
+  return Number.isFinite(amount) ? amount : 0
+}
+
+function seriesToPoints(series, width, height, min, range) {
+  const maxX = getSeriesMaxX(series)
+  return series
+    .map((point, index) => {
+      const pointX = typeof point === 'number' ? index + 1 : Number(point?.x || point?.day || index + 1)
+      const pointY = typeof point === 'number' ? point : Number(point?.y || point?.cumulative || 0)
+      const x = (pointX / Math.max(maxX, 1)) * (width - 2) + 1
+      const y = scaleY(pointY, height, min, range)
+      return `${x.toFixed(2)},${y.toFixed(2)}`
+    })
+    .join(' ')
+}
+
+function scaleY(value, height, min, range) {
+  const usableHeight = height - 16
+  return usableHeight - ((value - min) / range) * usableHeight + 8
+}
+
+function getLastPoint(series, width) {
+  const index = Math.max(0, series.length - 1)
+  const maxX = getSeriesMaxX(series)
+  const last = series[index]
+  const pointX = typeof last === 'number' ? index + 1 : Number(last?.x || last?.day || index + 1)
+  const x = (pointX / Math.max(maxX, 1)) * (width - 2) + 1
+  return { x }
+}
+
+function buildAreaPath(points, width, height) {
+  if (!points) return ''
+  const first = points.split(' ')[0]
+  const last = points.split(' ').slice(-1)[0]
+  return `M ${first} L ${points.split(' ').slice(1).join(' ')} L ${last.split(',')[0]},${height - 8} L ${first.split(',')[0]},${height - 8} Z`
+}
+
+function getSeriesMaxX(series = []) {
+  if (!series.length) return 1
+  const candidate = series.reduce((max, point, index) => {
+    const value = typeof point === 'number' ? index + 1 : Number(point?.x || point?.day || index + 1)
+    return Math.max(max, value)
+  }, 1)
+  return Math.max(candidate, series.length)
 }

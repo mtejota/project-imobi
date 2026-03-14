@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 import { supportApi } from '../api'
@@ -6,7 +6,7 @@ import { supportApi } from '../api'
 const CATEGORIES = ['Problema técnico', 'Erro de integração', 'Cobrança', 'Sugestão', 'Outro']
 const PRIORITIES = ['Baixa', 'Média', 'Alta']
 
-export default function   ScreenSupport() {
+export default function ScreenSupport() {
   const [category, setCategory] = useState(CATEGORIES[0])
   const [priority, setPriority] = useState(PRIORITIES[1])
   const [subject, setSubject] = useState('')
@@ -14,7 +14,14 @@ export default function   ScreenSupport() {
   const [attachments, setAttachments] = useState([])
   const [sending, setSending] = useState(false)
   const [ticketId, setTicketId] = useState('')
+  const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1024)
   const inputRef = useRef(null)
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 1024)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const canSend = useMemo(() => subject.trim() && description.trim(), [subject, description])
 
@@ -29,6 +36,7 @@ export default function   ScreenSupport() {
       size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
       preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : '',
     }))
+
     setAttachments((prev) => [...prev, ...mapped])
   }
 
@@ -54,23 +62,24 @@ export default function   ScreenSupport() {
 
       const nextTicketId = ticket.id || ticket.ticketId
       if (nextTicketId && attachments.length > 0) {
-        await Promise.all(
-          attachments.map((attachment) => supportApi.uploadSupportAttachment(nextTicketId, attachment.file))
-        )
+        await Promise.all(attachments.map((attachment) => supportApi.uploadSupportAttachment(nextTicketId, attachment.file)))
       }
 
       setTicketId(nextTicketId || `SUP-${Math.floor(10000 + Math.random() * 90000)}`)
     } finally {
       setSending(false)
-    } 
+    }
   }
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#f8fafc' }}>
-      <div style={{ maxWidth: 1050, margin: '0 auto', padding: '24px 24px 32px' }}>
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>Suporte</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Abra um chamado com detalhes do problema e anexe imagens para agilizar o atendimento.</div>
+      <div style={{ maxWidth: 1120, margin: '0 auto', padding: '24px 24px 32px' }}>
+        <div style={{ marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>Suporte</div>
+            <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Abra um chamado com detalhes, impacto e anexos para agilizar o atendimento.</div>
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a', padding: '6px 10px', borderRadius: 20, background: '#f0fdf4', border: '1px solid #bbf7d0' }}>SLA ativo</span>
         </div>
 
         {ticketId && (
@@ -79,44 +88,69 @@ export default function   ScreenSupport() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 320px', gap: 16 }}>
           <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 16, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <Field label="Categoria">
+            <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 12 }}>
+              <Field label='Categoria'>
                 <select value={category} onChange={(e) => setCategory(e.target.value)} style={inputStyle}>
                   {CATEGORIES.map((item) => (
-                    <option key={item} value={item}>{item}</option>
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
                   ))}
                 </select>
               </Field>
 
-              <Field label="Prioridade">
+              <Field label='Prioridade'>
                 <select value={priority} onChange={(e) => setPriority(e.target.value)} style={inputStyle}>
                   {PRIORITIES.map((item) => (
-                    <option key={item} value={item}>{item}</option>
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
                   ))}
                 </select>
               </Field>
             </div>
 
-            <Field label="Assunto">
-              <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ex: Erro ao sincronizar WhatsApp" style={inputStyle} />
+            <Field label='Assunto'>
+              <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder='Ex: erro ao salvar atualização de lead' style={inputStyle} />
             </Field>
 
-            <Field label="Descreva o ocorrido">
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Informe o que aconteceu, quando aconteceu e qual impacto no atendimento." style={{ ...inputStyle, minHeight: 130, resize: 'vertical' }} />
+            <Field label='Descreva o ocorrido'>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder='Informe cenário, passos para reproduzir e impacto no dia a dia.'
+                style={{ ...inputStyle, minHeight: 130, resize: 'vertical' }}
+              />
             </Field>
 
             <div style={{ marginTop: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Complementos (imagens)</div>
-              <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFiles} style={{ display: 'none' }} />
-              <button onClick={() => inputRef.current?.click()} style={{ border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <input ref={inputRef} type='file' accept='image/*' multiple onChange={onFiles} style={{ display: 'none' }} />
+              <button
+                onClick={() => inputRef.current?.click()}
+                style={{
+                  border: '1px solid #bfdbfe',
+                  background: '#eff6ff',
+                  color: '#1d4ed8',
+                  borderRadius: 10,
+                  padding: '8px 12px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
                 <Icon d={icons.upload} size={13} /> Anexar imagens
               </button>
             </div>
 
             {attachments.length > 0 && (
-              <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
+              <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: isCompact ? '1fr 1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
                 {attachments.map((att) => (
                   <div key={att.id} style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
                     {att.preview ? (
@@ -127,7 +161,9 @@ export default function   ScreenSupport() {
                     <div style={{ padding: '8px 8px 6px' }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{att.name}</div>
                       <div style={{ fontSize: 10, color: '#94a3b8' }}>{att.size}</div>
-                      <button onClick={() => removeAttachment(att.id)} style={{ marginTop: 6, border: 'none', background: '#fef2f2', color: '#ef4444', borderRadius: 8, padding: '4px 7px', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>Remover</button>
+                      <button onClick={() => removeAttachment(att.id)} style={{ marginTop: 6, border: 'none', background: '#fef2f2', color: '#ef4444', borderRadius: 8, padding: '4px 7px', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                        Remover
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -135,7 +171,21 @@ export default function   ScreenSupport() {
             )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-              <button disabled={!canSend || sending} onClick={submitTicket} style={{ border: 'none', background: canSend ? '#1a56db' : '#cbd5e1', color: '#fff', borderRadius: 10, padding: '10px 14px', fontSize: 12, fontWeight: 700, cursor: canSend ? 'pointer' : 'default', fontFamily: 'inherit' }}>
+              <button
+                disabled={!canSend || sending}
+                onClick={submitTicket}
+                style={{
+                  border: 'none',
+                  background: canSend ? '#1a56db' : '#cbd5e1',
+                  color: '#fff',
+                  borderRadius: 10,
+                  padding: '10px 14px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: canSend ? 'pointer' : 'default',
+                  fontFamily: 'inherit',
+                }}
+              >
                 {sending ? 'Enviando...' : 'Abrir chamado'}
               </button>
             </div>
@@ -153,7 +203,27 @@ export default function   ScreenSupport() {
 
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 16, padding: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: '#1d4ed8', marginBottom: 6 }}>SLA estimado</div>
-              <div style={{ fontSize: 12, color: '#1e3a8a', lineHeight: 1.6 }}>Alta: até 2h<br />Média: até 8h<br />Baixa: até 24h</div>
+              <div style={{ fontSize: 12, color: '#1e3a8a', lineHeight: 1.6 }}>
+                Alta: até 2h
+                <br />
+                Média: até 8h
+                <br />
+                Baixa: até 24h
+              </div>
+            </div>
+
+            <div style={{ background: '#0f172a', borderRadius: 16, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#f8fafc', marginBottom: 10 }}>Status de atendimento</div>
+              {[
+                ['Abertos hoje', '12'],
+                ['Em andamento', '5'],
+                ['Resolvidos', '7'],
+              ].map(([label, value]) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, color: '#94a3b8' }}>{label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0' }}>{value}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -171,4 +241,13 @@ function Field({ label, children }) {
   )
 }
 
-const inputStyle = { width: '100%', borderRadius: 12, border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: '#fff' }
+const inputStyle = {
+  width: '100%',
+  borderRadius: 12,
+  border: '1px solid #e2e8f0',
+  padding: '10px 12px',
+  fontSize: 13,
+  fontFamily: 'inherit',
+  outline: 'none',
+  background: '#fff',
+}
