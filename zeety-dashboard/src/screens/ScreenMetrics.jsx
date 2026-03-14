@@ -89,8 +89,6 @@ export default function ScreenMetrics({ onOpenGenerateReport }) {
     ]
   }, [overview])
 
-  
-
   const soldVolume = Number(overview?.soldVolume || 0)
   const leadsCaptured = Number(overview?.leadsCaptured || 0)
   const closings = Number(overview?.closings || 0)
