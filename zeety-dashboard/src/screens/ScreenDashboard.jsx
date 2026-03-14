@@ -242,6 +242,7 @@ export default function ScreenDashboard({
           currentSeries={negotiationSeriesCurrent}
           previousSeries={negotiationSeriesPrevious}
           xLabels={['1', '5', '10', '15', '20', '25', '30']}
+          yFormatter={(tick) => String(Math.round(tick))}
           onOpen={onOpenPipeline}
           ctaLabel="Ver pipeline"
           tipText={`+${Math.max(0, negotiationsCurrent - negotiationsPrevious)} negociações neste ciclo`}
@@ -267,7 +268,6 @@ export default function ScreenDashboard({
           delay={215}
           ready={ready}
         />
-      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
