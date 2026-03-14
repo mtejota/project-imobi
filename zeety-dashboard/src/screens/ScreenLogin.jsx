@@ -5,14 +5,14 @@ const METRICS = [
     title: 'Comissão Estimada',
     value: 'R$ 164.850',
     change: '+26,2%',
-    note: 'vs mes passado',
+    note: 'vs mês passado',
     points: '18,32 28,26 42,38 56,48 70,58 84,64 98,70',
   },
   {
     title: 'Negociações Ativas',
     value: 'R$ 3.245.847',
     change: '+12,5%',
-    note: 'este mes',
+    note: 'este mês',
     points: '16,58 28,60 40,54 52,46 64,42 76,34 98,28',
   },
 ]
