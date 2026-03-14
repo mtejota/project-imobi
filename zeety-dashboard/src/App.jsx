@@ -531,7 +531,7 @@ function TenantLayout({
               <Route path="metrics/report" element={<ScreenGenerateReport onBack={() => navigate(toPath('metrics'))} />} />
 
               <Route path="documents" element={<ScreenDocuments onOpenRequestDocuments={() => navigate(toPath('documents/request'))} onOpenUpload={() => navigate(toPath('documents/upload'))} />} />
-              <Route path="documents/request" element={<ScreenRequestDocuments onBack={() => navigate(toPath('documents'))} />} />
+              <Route path="documents/request" element={<ScreenRequestDocuments leads={leadsData} onBack={() => navigate(toPath('documents'))} />} />
               <Route path="documents/upload" element={<ScreenDocumentUpload onBack={() => navigate(toPath('documents'))} />} />
               <Route path="support" element={<ScreenSupport />} />
 

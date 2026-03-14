@@ -9,10 +9,7 @@ const tabs = [
   { id: 'integrations', label: 'Integrações' },
 ]
 
-const fakeQr =
-  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220"><rect width="220" height="220" fill="white"/><rect x="10" y="10" width="60" height="60" fill="black"/><rect x="20" y="20" width="40" height="40" fill="white"/><rect x="30" y="30" width="20" height="20" fill="black"/><rect x="150" y="10" width="60" height="60" fill="black"/><rect x="160" y="20" width="40" height="40" fill="white"/><rect x="170" y="30" width="20" height="20" fill="black"/><rect x="10" y="150" width="60" height="60" fill="black"/><rect x="20" y="160" width="40" height="40" fill="white"/><rect x="30" y="170" width="20" height="20" fill="black"/><rect x="90" y="90" width="10" height="10" fill="black"/><rect x="110" y="90" width="10" height="10" fill="black"/><rect x="130" y="90" width="10" height="10" fill="black"/><rect x="90" y="110" width="10" height="10" fill="black"/><rect x="110" y="110" width="10" height="10" fill="black"/><rect x="130" y="110" width="10" height="10" fill="black"/><rect x="90" y="130" width="10" height="10" fill="black"/><rect x="110" y="130" width="10" height="10" fill="black"/><rect x="130" y="130" width="10" height="10" fill="black"/></svg>'
-
-export default function ScreenSettings({ userName = 'Lucas Correia', userEmail = 'lucas@zeety.com.br', userCreci = '', userPhoto = '', onChangeUserName, onChangeUserPhoto }) {
+export default function ScreenSettings({ userName = '', userEmail = '', userCreci = '', userPhoto = '', onChangeUserName, onChangeUserPhoto }) {
   const [tab, setTab] = useState('general')
   const [saving, setSaving] = useState(false)
   const [photoName, setPhotoName] = useState('Sem arquivo selecionado')
@@ -35,7 +32,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
   const summaryItems = useMemo(
     () => [
       { label: 'Usuário', value: userName, color: '#1a56db' },
-      { label: 'Plano', value: 'Ultra', color: '#8b5cf6' },
+      { label: 'Plano', value: 'Ativo', color: '#8b5cf6' },
       { label: 'WhatsApp', value: isWhatsappConnected ? 'Conectado' : 'Pendente', color: isWhatsappConnected ? '#10b981' : '#f59e0b' },
     ],
     [isWhatsappConnected, userName]
@@ -101,7 +98,13 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-              <img src={qrCodeValue || fakeQr} alt="QR Code WhatsApp" style={{ width: 220, height: 220, borderRadius: 12, border: '1px solid #e2e8f0' }} />
+              {qrCodeValue ? (
+                <img src={qrCodeValue} alt="QR Code WhatsApp" style={{ width: 220, height: 220, borderRadius: 12, border: '1px solid #e2e8f0' }} />
+              ) : (
+                <div style={{ width: 220, height: 220, borderRadius: 12, border: '1px dashed #cbd5e1', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 20, fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
+                  O QR Code será exibido aqui assim que a API retornar a sessão de conexão.
+                </div>
+              )}
             </div>
 
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '10px 12px', fontSize: 12, color: '#1d4ed8', lineHeight: 1.5, marginBottom: 12 }}>
@@ -203,7 +206,7 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
                 <Field label="CRECI">
                   <Input value={userCreci || '-'} readOnly disabled />
                 </Field>
-                <Field label="Telefone"><Input defaultValue="+55 (11) 99888-7766" /></Field>
+                <Field label="Telefone"><Input placeholder="+55 (00) 00000-0000" /></Field>
                 </div>
 
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: 14, background: '#f8fafc', padding: 14 }}>
@@ -216,10 +219,10 @@ export default function ScreenSettings({ userName = 'Lucas Correia', userEmail =
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                     {[
-                      { label: 'Conversas ativas', value: '06', color: '#1a56db' },
-                      { label: 'Leads no mês', value: '47', color: '#8b5cf6' },
-                      { label: 'Tempo resposta', value: '4min', color: '#10b981' },
-                      { label: 'Taxa conversão', value: '6.4%', color: '#f59e0b' },
+                      { label: 'Conversas ativas', value: isWhatsappConnected ? 'Conectado' : '--', color: '#1a56db' },
+                      { label: 'Leads no mês', value: '--', color: '#8b5cf6' },
+                      { label: 'Tempo resposta', value: '--', color: '#10b981' },
+                      { label: 'Taxa conversão', value: '--', color: '#f59e0b' },
                     ].map((item) => (
                       <div key={item.label} style={{ border: '1px solid #e2e8f0', borderRadius: 10, background: '#fff', padding: '10px 8px', textAlign: 'center' }}>
                         <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>{item.label}</div>

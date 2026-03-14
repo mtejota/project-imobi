@@ -2,12 +2,6 @@ import { useState } from 'react'
 import Icon from '../components/Icon'
 import { icons } from '../constants/icons'
 
-const LEADS = [
-  { id: 1, name: 'Beatriz Santos', avatar: 'BS', color: '#8b5cf6', stage: 'Negociação' },
-  { id: 2, name: 'João Ferreira', avatar: 'JF', color: '#ef4444', stage: 'Proposta' },
-  { id: 3, name: 'Rafael Mendes', avatar: 'RM', color: '#10b981', stage: 'Proposta' },
-]
-
 const DOC_TEMPLATES = {
   'Compra Financiada': ['RG + CPF', 'Certidão de Nascimento/Casamento', 'Comprovante de Renda (3 meses)', 'Extratos Bancários (3 meses)', 'Comprovante de Residência', 'Imposto de Renda', 'FGTS (extrato)'],
   'Compra à Vista': ['RG + CPF', 'Certidão de Nascimento/Casamento', 'Comprovante de Renda', 'Comprovante de Residência', 'Declaração de IR'],
@@ -31,15 +25,22 @@ const initialDocs = [
   { id: 6, name: 'FGTS (extrato)', status: 'Pendente', reminder: 0, receivedAt: null },
 ]
 
-export default function ScreenRequestDocuments({ onBack }) {
-  const [selectedLead, setSelectedLead] = useState(LEADS[0])
+export default function ScreenRequestDocuments({ onBack, leads = [] }) {
+  const leadOptions = leads.slice(0, 3).map((lead, index) => ({
+    id: lead.id,
+    name: lead.name || `Lead ${index + 1}`,
+    avatar: lead.avatar || String(lead.name || `L${index + 1}`).slice(0, 2).toUpperCase(),
+    color: lead.color || ['#8b5cf6', '#ef4444', '#10b981'][index % 3],
+    stage: lead.stage || 'Em análise',
+  }))
+  const [selectedLead, setSelectedLead] = useState(leadOptions[0] || null)
   const [template, setTemplate] = useState('Compra Financiada')
   const [docs, setDocs] = useState(initialDocs)
   const [newDoc, setNewDoc] = useState('')
   const [activeTab, setActiveTab] = useState('checklist')
   const [sending, setSending] = useState(false)
   const [sentMsg, setSentMsg] = useState(false)
-  const [msgText, setMsgText] = useState('Olá! Para prosseguirmos com sua proposta, precisamos dos seguintes documentos. Por favor, envie por aqui no WhatsApp.')
+  const [msgText, setMsgText] = useState('Olá. Para prosseguirmos com a negociação, precisamos dos documentos abaixo. Você pode enviar por aqui assim que estiver com tudo separado.')
 
   const updateStatus = (id, status) => setDocs((ds) => ds.map((d) => (d.id === id ? { ...d, status } : d)))
   const removeDoc = (id) => setDocs((ds) => ds.filter((d) => d.id !== id))
@@ -82,8 +83,13 @@ export default function ScreenRequestDocuments({ onBack }) {
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '20px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 14 }}>Lead / Negociação</div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              {LEADS.map((l) => (
+            {!leadOptions.length ? (
+              <div style={{ border: '1px dashed #cbd5e1', borderRadius: 12, background: '#f8fafc', padding: '18px 16px', fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>
+                Nenhum lead disponível no momento. Quando o backend retornar negociações ativas, a seleção aparecerá aqui.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 10 }}>
+              {leadOptions.map((l) => (
                 <button key={l.id} onClick={() => setSelectedLead(l)} style={{ flex: 1, padding: '12px 14px', borderRadius: 12, border: `2px solid ${selectedLead.id === l.id ? l.color : '#f1f5f9'}`, background: selectedLead.id === l.id ? `${l.color}10` : '#fff', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${l.color}20`, border: `2px solid ${l.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: l.color, flexShrink: 0 }}>{l.avatar}</div>
                   <div style={{ textAlign: 'left' }}>
@@ -92,7 +98,8 @@ export default function ScreenRequestDocuments({ onBack }) {
                   </div>
                 </button>
               ))}
-            </div>
+              </div>
+            )}
           </div>
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '20px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
@@ -215,6 +222,11 @@ export default function ScreenRequestDocuments({ onBack }) {
               </div>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>Enviar solicitação via WhatsApp</div>
             </div>
+            {selectedLead && (
+              <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>
+                Envio preparado para <strong style={{ color: '#0f172a' }}>{selectedLead.name}</strong>
+              </div>
+            )}
             <textarea
               value={msgText}
               onChange={(e) => setMsgText(e.target.value)}
@@ -222,8 +234,8 @@ export default function ScreenRequestDocuments({ onBack }) {
               style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.6, marginBottom: 12 }}
             />
             <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 12 }}>A lista de documentos sera adicionada automaticamente.</div>
-            <button onClick={handleSend} disabled={sending} style={{ width: '100%', padding: 12, borderRadius: 12, border: 'none', background: sending ? '#94a3b8' : '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: sending ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
-              {sending ? 'Enviando...' : `Enviar para ${selectedLead.name}`}
+            <button onClick={handleSend} disabled={sending || !selectedLead} style={{ width: '100%', padding: 12, borderRadius: 12, border: 'none', background: sending || !selectedLead ? '#94a3b8' : '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: sending || !selectedLead ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+              {sending ? 'Enviando...' : selectedLead ? `Enviar para ${selectedLead.name}` : 'Aguardando lead'}
             </button>
           </div>
 

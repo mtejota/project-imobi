@@ -260,16 +260,7 @@ export default function ScreenNewLead({ onBack, onOpenLeadProfile }) {
                   />
                 </Field>
                 <Field label="Corretor responsável" required>
-                  <Select
-                    value={form.broker}
-                    onChange={set('broker')}
-                    options={[
-                      { value: '', label: 'Selecionar...' },
-                      { value: 'Lucas Correia', label: 'Lucas Correia' },
-                      { value: 'Ana Paula', label: 'Ana Paula' },
-                      { value: 'Marcos Vieira', label: 'Marcos Vieira' },
-                    ]}
-                  />
+                  <Input placeholder="Nome do responsável" value={form.broker} onChange={set('broker')} icon={icons.user} />
                 </Field>
                 <Field label="Estágio inicial">
                   <Select

@@ -44,11 +44,6 @@ export default function ScreenDashboard({ onOpenLeads, onOpenCalendar, userName 
     { label: 'Propostas', val: proposals, pct: 17, color: '#f97316' },
     { label: 'Fechamentos', val: closings, pct: 6, color: '#10b981' },
   ]
-  const commissionForecast = [
-    { name: 'Lucas Correia', avatar: 'LC', color: '#1a56db', meta: 120000, projected: 98400 },
-    { name: 'Ana Paula', avatar: 'AP', color: '#8b5cf6', meta: 95000, projected: 81100 },
-    { name: 'Marcos Vieira', avatar: 'MV', color: '#f59e0b', meta: 80000, projected: 52300 },
-  ]
   const greetingByHour = getGreetingByHour(time.getHours())
   const displayName = String(userName || 'Usuário').split(' ')[0]
   const dateLabel = time.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })

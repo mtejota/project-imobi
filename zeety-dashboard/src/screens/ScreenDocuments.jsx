@@ -3,12 +3,12 @@ import { icons } from '../constants/icons'
 
 export default function ScreenDocuments({ onOpenRequestDocuments, onOpenUpload }) {
   const docs = [
-    { name: 'Proposta Comercial - Beatriz Santos.pdf', type: 'Proposta', size: '184 KB', date: '05/03', status: 'Enviado', color: '#8b5cf6' },
-    { name: 'RG + CPF - João Ferreira.pdf', type: 'Documento', size: '2.1 MB', date: '06/03', status: 'Recebido', color: '#3b82f6' },
-    { name: 'Contrato Compra e Venda - Morumbi.docx', type: 'Contrato', size: '512 KB', date: '04/03', status: 'Pendente Assinatura', color: '#f59e0b' },
-    { name: 'Comprovante de Renda - Beatriz.pdf', type: 'Documento', size: '890 KB', date: '06/03', status: 'Recebido', color: '#10b981' },
-    { name: 'Ficha Cadastral - Rafael Mendes.pdf', type: 'Ficha', size: '210 KB', date: '03/03', status: 'Pendente', color: '#ef4444' },
-    { name: 'Laudo de Avaliação - Itaim.pdf', type: 'Laudo', size: '3.4 MB', date: '01/03', status: 'Aprovado', color: '#10b981' },
+    { name: 'Proposta comercial.pdf', type: 'Proposta', size: '184 KB', date: '05/03', status: 'Enviado', color: '#8b5cf6' },
+    { name: 'Documento de identificação.pdf', type: 'Documento', size: '2.1 MB', date: '06/03', status: 'Recebido', color: '#3b82f6' },
+    { name: 'Contrato compra e venda.docx', type: 'Contrato', size: '512 KB', date: '04/03', status: 'Pendente Assinatura', color: '#f59e0b' },
+    { name: 'Comprovante de renda.pdf', type: 'Documento', size: '890 KB', date: '06/03', status: 'Recebido', color: '#10b981' },
+    { name: 'Ficha cadastral.pdf', type: 'Ficha', size: '210 KB', date: '03/03', status: 'Pendente', color: '#ef4444' },
+    { name: 'Laudo de avaliação.pdf', type: 'Laudo', size: '3.4 MB', date: '01/03', status: 'Aprovado', color: '#10b981' },
   ]
 
   const statusColor = { Enviado: '#3b82f6', Recebido: '#10b981', 'Pendente Assinatura': '#f59e0b', Pendente: '#ef4444', Aprovado: '#10b981' }
@@ -32,8 +32,8 @@ export default function ScreenDocuments({ onOpenRequestDocuments, onOpenUpload }
       <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 14 }}>
         <Icon d={icons.bell} size={18} stroke="#f59e0b" />
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>2 documentos pendentes de Rafael Mendes</div>
-          <div style={{ fontSize: 12, color: '#b45309', marginTop: 2 }}>Comprovante de residência e extratos bancários · IA enviou lembrete automático</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>2 documentos seguem pendentes de envio</div>
+          <div style={{ fontSize: 12, color: '#b45309', marginTop: 2 }}>Comprovante de residência e extratos bancários · o sistema enviou lembrete automático</div>
         </div>
         <button onClick={onOpenRequestDocuments} style={{ marginLeft: 'auto', padding: '7px 14px', borderRadius: 8, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Ver</button>
       </div>

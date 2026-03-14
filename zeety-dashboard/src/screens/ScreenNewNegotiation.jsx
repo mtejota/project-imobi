@@ -8,9 +8,9 @@ export default function ScreenNewNegotiation({ leads = [], properties = [], onBa
   const [leadId, setLeadId] = useState(String(leads[0]?.id || ''))
   const [propertyId, setPropertyId] = useState(String(properties[0]?.id || ''))
   const [stage, setStage] = useState('Prospecção')
-  const [value, setValue] = useState('750000')
+  const [value, setValue] = useState('')
   const [priority, setPriority] = useState('Média')
-  const [notes, setNotes] = useState('Lead demonstrou interesse alto. Agendar visita na próxima janela disponível.')
+  const [notes, setNotes] = useState('')
   const [creating, setCreating] = useState(false)
 
   const selectedLead = useMemo(() => leads.find((l) => String(l.id) === leadId), [leadId])
