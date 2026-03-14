@@ -59,7 +59,7 @@ export default function ScreenLogin({ onLogin, onRegister }) {
       }
 
       if (password !== confirmPassword) {
-        setError('As senhas nao conferem.')
+        setError('As senhas não conferem.')
         return
       }
     }
@@ -72,7 +72,7 @@ export default function ScreenLogin({ onLogin, onRegister }) {
         await onRegister?.({ name, email, password, creci })
       }
     } catch (err) {
-      setError(err?.message || 'Nao foi possivel autenticar no momento.')
+      setError(err?.message || 'Não foi possível autenticar no momento.')
     } finally {
       setLoading(false)
     }
