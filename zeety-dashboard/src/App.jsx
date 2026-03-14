@@ -549,7 +549,6 @@ function TenantLayout({
                 path="dashboard"
                 element={
                   <ScreenDashboard
-                    onOpenLeads={() => navigate(toPath('leads'))}
                     onOpenCalendar={() => navigate(toPath('calendar'))}
                     onOpenPipeline={() => navigate(toPath('pipeline'))}
                     onOpenMetrics={() => navigate(toPath('metrics'))}
