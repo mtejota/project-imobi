@@ -188,12 +188,12 @@ export default function ScreenDashboard({
   ]
 
   return (
-    <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%', fontFamily: "'Sora', sans-serif" }}>
+    <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%', fontFamily: 'inherit' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, ...inViewStyle(ready, 0) }}>
         <div>
-          <div style={{ fontSize: 31, lineHeight: 1.02, color: '#0f172a', fontFamily: "'Instrument Serif', serif", letterSpacing: '-0.03em' }}>
+          <div style={{ fontSize: 31, lineHeight: 1.02, color: '#0f172a', fontFamily: 'inherit', letterSpacing: '-0.03em', fontWeight: 700 }}>
             {greetingByHour},{' '}
-            <span style={{ color: '#1a56db', fontFamily: "'Sora', sans-serif", fontWeight: 700 }}>{displayName}</span>
+            <span style={{ color: '#1a56db', fontFamily: 'inherit', fontWeight: 700 }}>{displayName}</span>
           </div>
           <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, fontWeight: 600, letterSpacing: '-0.01em' }}>{headlineByHour}</div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#1d4ed8', marginTop: 8, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 999, padding: '5px 11px', fontWeight: 700 }}>
@@ -299,7 +299,7 @@ export default function ScreenDashboard({
             <div style={{ padding: '8px 22px 18px' }}>
               {appointments.map((a, i) => (
                 <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 0', borderBottom: i < appointments.length - 1 ? '1px solid #f8fafc' : 'none', ...inViewStyle(ready, 360 + i * 45) }}>
-                  <div style={{ width: 48, textAlign: 'center', fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 700, color: '#64748b' }}>{a.time || '-'}</div>
+                  <div style={{ width: 48, textAlign: 'center', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: '#64748b' }}>{a.time || '-'}</div>
                   <div style={{ width: 3, height: 36, borderRadius: 4, background: String(a.status || '').toLowerCase().includes('confirm') ? '#10b981' : '#f59e0b', flexShrink: 0 }} />
                   <Avatar initials={a.avatar || String(a.name || 'A').slice(0, 2).toUpperCase()} color={a.color || '#3b82f6'} size={32} />
                   <div style={{ flex: 1 }}>
@@ -353,7 +353,7 @@ export default function ScreenDashboard({
               <div key={row.label} style={{ marginBottom: 10, ...inViewStyle(ready, 380 + idx * 55) }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontSize: 11, color: '#64748b' }}>{row.label}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', fontFamily: "'DM Mono', monospace" }}>{row.val}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', fontFamily: 'inherit' }}>{row.val}</span>
                 </div>
                 <div style={{ height: 6, background: '#f1f5f9', borderRadius: 4 }}>
                   <div style={{ height: '100%', width: showCharts ? `${row.pct}%` : '0%', background: row.color, borderRadius: 4, transition: 'width 1s, filter 0.4s', filter: showCharts ? 'saturate(1)' : 'saturate(0.7)' }} />
@@ -430,7 +430,7 @@ function ComparisonMetricCard({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
-        <div style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: '#0f172a', letterSpacing: '-0.04em', fontFamily: "'Instrument Serif', serif" }}>{value}</div>
+        <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#0f172a', letterSpacing: '-0.04em', fontFamily: 'inherit' }}>{value}</div>
         {valueSuffix && <span style={{ fontSize: 18, color: '#475569', fontWeight: 600, letterSpacing: '-0.03em' }}>{valueSuffix}</span>}
       </div>
 

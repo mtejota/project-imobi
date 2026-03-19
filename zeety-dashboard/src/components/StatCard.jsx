@@ -34,7 +34,7 @@ export default function StatCard({ icon, label, value, delta, color, bg }) {
           </span>
         )}
       </div>
-      <div style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', fontFamily: 'inherit', lineHeight: 1 }}>{value}</div>
       <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4, fontWeight: 500 }}>{label}</div>
     </div>
   )
