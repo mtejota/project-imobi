@@ -188,15 +188,15 @@ export default function ScreenDashboard({
   ]
 
   return (
-    <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%' }}>
+    <div style={{ padding: '28px 32px', overflowY: 'auto', height: '100%', fontFamily: "'Sora', sans-serif" }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, ...inViewStyle(ready, 0) }}>
         <div>
-          <div style={{ fontSize: 23, fontWeight: 800, color: '#0f172a' }}>
+          <div style={{ fontSize: 31, lineHeight: 1.02, color: '#0f172a', fontFamily: "'Instrument Serif', serif", letterSpacing: '-0.03em' }}>
             {greetingByHour},{' '}
-            <span style={{ color: '#1a56db' }}>{displayName}</span>
+            <span style={{ color: '#1a56db', fontFamily: "'Sora', sans-serif", fontWeight: 700 }}>{displayName}</span>
           </div>
-          <div style={{ fontSize: 13, color: '#64748b', marginTop: 3, fontWeight: 600 }}>{headlineByHour}</div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#1d4ed8', marginTop: 6, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 999, padding: '4px 10px', fontWeight: 700 }}>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, fontWeight: 600, letterSpacing: '-0.01em' }}>{headlineByHour}</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#1d4ed8', marginTop: 8, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 999, padding: '5px 11px', fontWeight: 700 }}>
             <Icon d={icons.calendar} size={12} stroke="#1d4ed8" />
             <span>{compactDateLabel} · {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
@@ -273,7 +273,7 @@ export default function ScreenDashboard({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 210) }}>
             <div style={{ padding: '16px 22px 12px', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Feed de prioridades do dia</span>
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#0f172a', letterSpacing: '-0.02em' }}>Feed de prioridades do dia</span>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Top 5 ações</span>
             </div>
             <div style={{ padding: '6px 22px 12px' }}>
@@ -293,7 +293,7 @@ export default function ScreenDashboard({
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 320) }}>
             <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>Agenda de Hoje</span>
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#0f172a', letterSpacing: '-0.02em' }}>Agenda de Hoje</span>
               <span onClick={onOpenCalendar} style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Abrir calendário →</span>
             </div>
             <div style={{ padding: '8px 22px 18px' }}>
@@ -348,7 +348,7 @@ export default function ScreenDashboard({
           </div>
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9', padding: '18px 20px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', ...inViewStyle(ready, 340) }}>
-            <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', marginBottom: 16 }}>Funil do Mês</div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#0f172a', marginBottom: 16, letterSpacing: '-0.02em' }}>Funil do Mês</div>
             {funnelRows.map((row, idx) => (
               <div key={row.label} style={{ marginBottom: 10, ...inViewStyle(ready, 380 + idx * 55) }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -425,13 +425,13 @@ function ComparisonMetricCard({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#64748b' }}>{title}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748b' }}>{title}</div>
         <span style={{ fontSize: 13, color: '#1d4ed8', fontWeight: 700 }}>{ctaLabel} ↗</span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
-        <div style={{ fontSize: 40, fontWeight: 500, lineHeight: 1, color: '#0f172a' }}>{value}</div>
-        {valueSuffix && <span style={{ fontSize: 20, color: '#475569', fontWeight: 500 }}>{valueSuffix}</span>}
+        <div style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: '#0f172a', letterSpacing: '-0.04em', fontFamily: "'Instrument Serif', serif" }}>{value}</div>
+        {valueSuffix && <span style={{ fontSize: 18, color: '#475569', fontWeight: 600, letterSpacing: '-0.03em' }}>{valueSuffix}</span>}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>

@@ -115,6 +115,11 @@ export default function ScreenLogin({ onLogin, onRegister }) {
                   <p className="login-subtitle" style={{ margin: '14px auto 0', maxWidth: 360, fontSize: 17, lineHeight: 1.55, color: '#64748b' }}>
                     Digite seu e-mail e senha para continuar e acompanhar sua operacao comercial com IA.
                   </p>
+                  <div style={{ margin: '14px auto 0', maxWidth: 360, borderRadius: 12, border: '1px solid #bfdbfe', background: '#eff6ff', padding: '8px 10px', textAlign: 'left' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#1e3a8a', marginBottom: 4 }}>Acesso demo</div>
+                    <div style={{ fontSize: 12, color: '#1e40af' }}>E-mail: demo@zeety.com.br</div>
+                    <div style={{ fontSize: 12, color: '#1e40af' }}>Senha: Demo@123</div>
+                  </div>
                 </div>
 
                 <form onSubmit={handleSubmit} style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
